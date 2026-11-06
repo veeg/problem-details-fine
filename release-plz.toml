@@ -1,0 +1,19 @@
+[workspace]
+# `release` also tags the commit and creates a GitHub Release with the changelog entry as its body.
+git_release_enable = true
+
+# Both crates share the workspace version, so bump them together.
+[[package]]
+name = "problem-details-fine"
+version_group = "problem-details-fine"
+# Macro changes ship to users through this crate, so list them in its changelog.
+changelog_include = ["problem-details-fine-macros"]
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+
+# Released alongside the main crate, so it gets no tag or GitHub Release of its own.
+[[package]]
+name = "problem-details-fine-macros"
+version_group = "problem-details-fine"
+git_tag_enable = false
+git_release_enable = false

@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  RUSTDOCFLAGS: -D warnings
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-hack
+      - run: cargo fmt --all --check
+      - run: cargo hack --feature-powerset --skip default --workspace clippy --all-targets
+      - run: cargo hack --feature-powerset --skip default --workspace test
+      - run: cargo hack --feature-powerset --skip default --workspace doc --no-deps
+      - run: cargo bench --workspace --all-features --no-run
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      # As built on docs.rs: every feature, with the feature each item requires.
+      - run: cargo +nightly docsrs
+        env:
+          RUSTDOCFLAGS: --cfg docsrs -D warnings
+
