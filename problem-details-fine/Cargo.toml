@@ -1,0 +1,79 @@
+[package]
+name = "problem-details-fine"
+description = """
+  RFC 9457 problem details for HTTP API handlers: define problem types once, and combine them into problem sets.
+
+  Openapi schemas and responses with the `utoipa` feature. Problem types for common HTTP API errors with the `embedded-types` feature.
+"""
+authors = ["Vegard Sandengen <vegardsandengen@proton.me>"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+# Shows the crate feature each item requires (`#[cfg_attr(docsrs, feature(doc_cfg))]`).
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = []
+# Openapi schemas and responses: `utoipa::ToSchema` for problem types, and `utoipa::IntoResponses` for problem types and problem sets.
+utoipa = ["dep:utoipa"]
+# `axum::response::IntoResponse` for problem types and problem sets, so that a handler can return them.
+axum = ["dep:axum"]
+# The `rewrite` module: global rules that change type URIs and tag URIs, in serialized documents and in schemas.
+rewrite = []
+# The `embedded` module: problem types for common HTTP API errors.
+embedded-types = []
+
+[dependencies]
+problem-details-fine-macros.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+http = "1"
+utoipa = { version = "6", optional = true }
+axum = { version = "0.8", optional = true, default-features = false, features = ["json"] }
+
+[dev-dependencies]
+utoipa = "6"
+insta = { version = "1", features = ["json"] }
+trybuild = "1"
+jsonschema = { version = "0.59", default-features = false }
+tower = { version = "0.5", features = ["util"] }
+axum = { version = "0.8", default-features = false, features = ["json", "query", "tokio", "http1"] }
+http-body-util = "0.1"
+tokio = { version = "1", features = ["macros", "rt", "net", "io-util"] }
+criterion = "0.8"
+serde_path_to_error = "0.1"
+
+[[example]]
+name = "widgets"
+path = "examples/widgets/main.rs"
+required-features = ["axum", "utoipa", "embedded-types"]
+# Runs the tests in the example, which include the check that `examples/widgets/openapi.json` is current.
+test = true
+
+[[bench]]
+name = "serialize"
+harness = false
+
+[[bench]]
+name = "rewrite_exact_1"
+harness = false
+required-features = ["rewrite"]
+
+[[bench]]
+name = "rewrite_exact_128"
+harness = false
+required-features = ["rewrite"]
+
+[[bench]]
+name = "rewrite_substring"
+harness = false
+required-features = ["rewrite"]
+
+[[bench]]
+name = "rewrite_miss_128"
+harness = false
+required-features = ["rewrite"]

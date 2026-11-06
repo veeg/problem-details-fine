@@ -1,0 +1,5 @@
+error: `detail` and `detail_with` are mutually exclusive
+ --> tests/ui/problem_type/detail_and_detail_with.rs:3:86
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", detail = "x", detail_with = describe)]
+  |                                                                                      ^^^

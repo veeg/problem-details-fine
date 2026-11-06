@@ -1,0 +1,64 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: schema
+---
+{
+  "description": "The endpoint does not support the media type of the request.",
+  "properties": {
+    "detail": {
+      "description": "A human-readable explanation specific to this occurrence of the problem.",
+      "type": "string"
+    },
+    "found": {
+      "description": "The media type in the header.",
+      "type": "string"
+    },
+    "header": {
+      "description": "The header that contains the media type.",
+      "type": "string"
+    },
+    "instance": {
+      "description": "A URI reference that identifies this occurrence of the problem.",
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "status": {
+      "description": "The HTTP status code of the problem.",
+      "enum": [
+        415
+      ],
+      "type": "integer"
+    },
+    "supported": {
+      "description": "The media types that the endpoint supports.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "title": {
+      "description": "A short, human-readable summary of the problem type.",
+      "examples": [
+        "The provided media type is unsupported by this endpoint"
+      ],
+      "type": "string"
+    },
+    "type": {
+      "description": "A URI reference that identifies the problem type.",
+      "enum": [
+        "tag:veeg.dev,2026:UNSUPPORTED_MIME"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "status",
+    "title",
+    "header",
+    "found",
+    "supported"
+  ],
+  "title": "UNSUPPORTED_MIME",
+  "type": "object"
+}

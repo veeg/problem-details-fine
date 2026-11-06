@@ -1,0 +1,15 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "column": 2,
+  "detail": "failed to deserialize request body field `name`; message: bad",
+  "field": "name",
+  "kind": "DESERIALIZE",
+  "line": 1,
+  "message": "bad",
+  "status": 400,
+  "title": "The HTTP request body encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_REQUEST_BODY"
+}

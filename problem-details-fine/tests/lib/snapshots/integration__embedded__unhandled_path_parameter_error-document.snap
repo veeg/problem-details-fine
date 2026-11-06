@@ -1,0 +1,9 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "status": 500,
+  "title": "Parsing and processing the HTTP path parameter encountered a fatal error",
+  "type": "tag:veeg.dev,2026:UNHANDLED_PATH_PARAMETER_ERROR"
+}

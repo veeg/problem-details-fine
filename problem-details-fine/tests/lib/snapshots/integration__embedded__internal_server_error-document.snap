@@ -1,0 +1,9 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "status": 500,
+  "title": "The server encountered an exceptional circumstance and was unable to proceed with processing the request",
+  "type": "tag:veeg.dev,2026:INTERNAL_SERVER_ERROR"
+}

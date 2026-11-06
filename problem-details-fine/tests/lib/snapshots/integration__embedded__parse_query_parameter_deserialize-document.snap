@@ -1,0 +1,15 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "parsing URL query encountered a deserialization issue on field `limit`: invalid digit",
+  "expected_type": null,
+  "field": "limit",
+  "kind": "DESERIALIZE",
+  "message": "invalid digit",
+  "status": 400,
+  "title": "An HTTP query parameter encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_QUERY_PARAMETER",
+  "value": "x"
+}

@@ -1,0 +1,12 @@
+[workspace]
+resolver = "3"
+members = ["problem-details-fine", "problem-details-fine-macros"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+
+[workspace.dependencies]
+problem-details-fine-macros = { path = "problem-details-fine-macros", version = "0.1.0" }

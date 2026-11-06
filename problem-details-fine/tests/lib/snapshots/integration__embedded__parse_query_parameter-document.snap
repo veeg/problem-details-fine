@@ -1,0 +1,12 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "missing required query parameter `limit`",
+  "field": "limit",
+  "kind": "MISSING_REQUIRED_FIELD",
+  "status": 400,
+  "title": "An HTTP query parameter encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_QUERY_PARAMETER"
+}

@@ -1,0 +1,17 @@
+error: `detail` refers to `{missing}`, which is not a field; available fields: `present`
+ --> tests/ui/problem_type/detail_unknown_field.rs:3:86
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", detail = "{missing}")]
+  |                                                                                      ^^^^^^^^^^^
+
+error: `detail` refers to `{nope}`, which is not a field; available fields: `present`
+  --> tests/ui/problem_type/detail_unknown_field.rs:11:24
+   |
+11 |     #[problem(detail = "{nope}")]
+   |                        ^^^^^^^^
+
+error: `detail` placeholders must name a field, like `{field}`
+  --> tests/ui/problem_type/detail_unknown_field.rs:15:86
+   |
+15 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", detail = "{0}")]
+   |                                                                                      ^^^^^

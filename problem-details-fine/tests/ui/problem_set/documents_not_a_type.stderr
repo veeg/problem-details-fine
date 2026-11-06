@@ -1,0 +1,5 @@
+error: expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+ --> tests/ui/problem_set/documents_not_a_type.rs:7:25
+  |
+7 | #[problem_set(documents(1))]
+  |                         ^

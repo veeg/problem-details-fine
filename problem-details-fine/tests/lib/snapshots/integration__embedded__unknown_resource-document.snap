@@ -1,0 +1,12 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "detail": "the requested resource of type `widget` with identifier `w-1` was not found",
+  "resource_identifier": "w-1",
+  "resource_type": "widget",
+  "status": 404,
+  "title": "A resource that was expected to exist could not be found",
+  "type": "tag:veeg.dev,2026:UNKNOWN_RESOURCE"
+}

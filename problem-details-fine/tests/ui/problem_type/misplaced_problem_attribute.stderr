@@ -1,0 +1,17 @@
+error: `#[problem(detail = ..)]` cannot be combined with `detail_with`
+ --> tests/ui/problem_type/misplaced_problem_attribute.rs:6:24
+  |
+6 |     #[problem(detail = "a")]
+  |                        ^^^
+
+error: `#[problem(..)]` is only supported on enum variants
+  --> tests/ui/problem_type/misplaced_problem_attribute.rs:16:5
+   |
+16 |     #[problem(detail = "x")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `detail` placeholders cannot take their width or precision from arguments
+  --> tests/ui/problem_type/misplaced_problem_attribute.rs:20:86
+   |
+20 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", detail = "{x:>w$}")]
+   |                                                                                      ^^^^^^^^^

@@ -1,0 +1,48 @@
+error: the extension member `tag` collides with the `tag` member that the `tag` argument adds
+ --> tests/ui/problem_type/tag_member.rs:5:5
+  |
+5 |     tag: String,
+  |     ^^^^^^^^^^^
+
+error: the `tag` argument is here
+ --> tests/ui/problem_type/tag_member.rs:3:49
+  |
+3 | #[problem_type(type = "https://x.test/a", tag = "tag:x.test,2025:A", status = NOT_FOUND, title = "X")]
+  |                                                 ^^^^^^^^^^^^^^^^^^^
+
+error: the extension member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/tag_member.rs:10:5
+   |
+10 | /     #[serde(rename = "tag")]
+11 | |     label: String,
+   | |_________________^
+
+error: the `tag` argument is here
+ --> tests/ui/problem_type/tag_member.rs:8:49
+  |
+8 | #[problem_type(type = "https://x.test/b", tag = "tag:x.test,2025:B", status = NOT_FOUND, title = "X")]
+  |                                                 ^^^^^^^^^^^^^^^^^^^
+
+error: the extension member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/tag_member.rs:14:110
+   |
+14 | #[problem_type(type = "https://x.test/c", tag = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", wrap = "tag")]
+   |                                                                                                              ^^^^^
+
+error: the `tag` argument is here
+  --> tests/ui/problem_type/tag_member.rs:14:49
+   |
+14 | #[problem_type(type = "https://x.test/c", tag = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", wrap = "tag")]
+   |                                                 ^^^^^^^^^^^^^^^^^^^
+
+error: the extension member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/tag_member.rs:20:15
+   |
+20 | #[serde(tag = "tag")]
+   |               ^^^^^
+
+error: the `tag` argument is here
+  --> tests/ui/problem_type/tag_member.rs:19:49
+   |
+19 | #[problem_type(type = "https://x.test/d", tag = "tag:x.test,2025:D", status = NOT_FOUND, title = "X")]
+   |                                                 ^^^^^^^^^^^^^^^^^^^

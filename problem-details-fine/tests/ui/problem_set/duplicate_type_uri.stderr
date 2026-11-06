@@ -1,0 +1,53 @@
+error[E0080]: evaluation panicked: two different problem types share the type URI `tag:x.test,2025:SAME`: `$CRATE::A` and `$CRATE::B`
+  --> tests/ui/problem_set/duplicate_type_uri.rs:16:7
+   |
+16 |     B(B),
+   |       ^ evaluation of `_` failed inside this call
+   |
+note: inside `problem_details_fine::__private::assert_distinct_members`
+  --> src/problem/set.rs
+   |
+   | /                 shared_type_uri(
+   | |                     uri,
+   | |                     [
+   | |                         (definition, first_member),
+   | |                         (other_definition, second_member),
+   | |                     ],
+   | |                 );
+   | |_________________^
+note: inside `problem_details_fine::problem::set::shared_type_uri`
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/problem/set.rs
+   |
+   |         Ok(message) => panic!("{}", message),
+   |                        --------------------- in this macro invocation
+
+error[E0080]: evaluation panicked: two different problem types share the type URI `tag:x.test,2025:SAME`: `$CRATE::A` in `Inner` and `$CRATE::B`
+  --> tests/ui/problem_set/duplicate_type_uri.rs:26:25
+   |
+26 | #[problem_set(documents(B))]
+   |                         ^ evaluation of `_` failed inside this call
+   |
+note: inside `problem_details_fine::__private::assert_distinct_members`
+  --> src/problem/set.rs
+   |
+   | /                 shared_type_uri(
+   | |                     uri,
+   | |                     [
+   | |                         (definition, first_member),
+   | |                         (other_definition, second_member),
+   | |                     ],
+   | |                 );
+   | |_________________^
+note: inside `problem_details_fine::problem::set::shared_type_uri`
+  --> $RUST/core/src/panic.rs
+   |
+   = note: the failure occurred here
+   |
+  ::: src/problem/set.rs
+   |
+   |         Ok(message) => panic!("{}", message),
+   |                        --------------------- in this macro invocation

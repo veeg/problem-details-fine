@@ -1,0 +1,15 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "the provided `content-type` header media type `text/plain` is unsupported; supported media types are: application/json",
+  "found": "text/plain",
+  "header": "content-type",
+  "status": 415,
+  "supported": [
+    "application/json"
+  ],
+  "title": "The provided media type is unsupported by this endpoint",
+  "type": "tag:veeg.dev,2026:UNSUPPORTED_MIME"
+}

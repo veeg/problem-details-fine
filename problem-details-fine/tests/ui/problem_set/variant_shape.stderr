@@ -1,0 +1,17 @@
+error: a `problem_set` variant must be a tuple variant with one field, and the field must be a problem type or a problem set
+ --> tests/ui/problem_set/variant_shape.rs:8:5
+  |
+8 |     Unit,
+  |     ^^^^
+
+error: a `problem_set` variant must be a tuple variant with one field, and the field must be a problem type or a problem set
+ --> tests/ui/problem_set/variant_shape.rs:9:5
+  |
+9 |     Named { a: A },
+  |     ^^^^^^^^^^^^^^
+
+error: a `problem_set` variant must be a tuple variant with one field, and the field must be a problem type or a problem set
+  --> tests/ui/problem_set/variant_shape.rs:10:5
+   |
+10 |     Two(A, A),
+   |     ^^^^^^^^^

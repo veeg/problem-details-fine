@@ -1,0 +1,11 @@
+error: `tag:api.example.com:2025:NOT_FOUND` is not a valid tag URI (missing `,` between authority and date); expected `tag:<authority>,<date>:<specific>` (RFC 4151), e.g. `tag:example.com,2025:NOT_FOUND`
+ --> tests/ui/problem_type/invalid_tag_uri.rs:3:23
+  |
+3 | #[problem_type(type = "tag:api.example.com:2025:NOT_FOUND", status = NOT_FOUND, title = "X")]
+  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `tag:example.com,25:A` is not a valid tag URI (the date must be `YYYY`, `YYYY-MM` or `YYYY-MM-DD`); expected `tag:<authority>,<date>:<specific>` (RFC 4151), e.g. `tag:example.com,2025:NOT_FOUND`
+ --> tests/ui/problem_type/invalid_tag_uri.rs:6:49
+  |
+6 | #[problem_type(type = "https://x.test/a", tag = "tag:example.com,25:A", status = NOT_FOUND, title = "X")]
+  |                                                 ^^^^^^^^^^^^^^^^^^^^^^

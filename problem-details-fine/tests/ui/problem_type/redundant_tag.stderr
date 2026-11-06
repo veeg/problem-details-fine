@@ -1,0 +1,5 @@
+error: `tag` is redundant: `type` is already a tag URI and is used as the tag
+ --> tests/ui/problem_type/redundant_tag.rs:3:50
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", tag = "tag:x.test,2025:B", status = NOT_FOUND, title = "X")]
+  |                                                  ^^^^^^^^^^^^^^^^^^^

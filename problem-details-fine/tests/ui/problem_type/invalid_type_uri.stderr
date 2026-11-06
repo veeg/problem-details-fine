@@ -1,0 +1,11 @@
+error: `/problems/not-found` is not an absolute URI: it has no scheme
+ --> tests/ui/problem_type/invalid_type_uri.rs:3:23
+  |
+3 | #[problem_type(type = "/problems/not-found", status = NOT_FOUND, title = "X")]
+  |                       ^^^^^^^^^^^^^^^^^^^^^
+
+error: `about:blank` is reserved for problems without a type; use `ProblemDetails::new(status)`
+ --> tests/ui/problem_type/invalid_type_uri.rs:6:23
+  |
+6 | #[problem_type(type = "about:blank", status = NOT_FOUND, title = "X")]
+  |                       ^^^^^^^^^^^^^

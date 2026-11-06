@@ -1,0 +1,30 @@
+error: the extension member `title` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+ --> tests/ui/problem_type/reserved_members.rs:5:5
+  |
+5 |     title: String,
+  |     ^^^^^^^^^^^^^
+
+error: the extension member `type` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+  --> tests/ui/problem_type/reserved_members.rs:10:5
+   |
+10 | /     #[serde(rename = "type")]
+11 | |     kind: String,
+   | |________________^
+
+error: the extension member `type` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+  --> tests/ui/problem_type/reserved_members.rs:17:5
+   |
+17 |     r#type: String,
+   |     ^^^^^^^^^^^^^^
+
+error: the extension member `detail` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+  --> tests/ui/problem_type/reserved_members.rs:21:15
+   |
+21 | #[serde(tag = "detail")]
+   |               ^^^^^^^^
+
+error: `wrap = "instance"` collides with a reserved problem details member
+  --> tests/ui/problem_type/reserved_members.rs:26:84
+   |
+26 | #[problem_type(type = "tag:x.test,2025:E", status = NOT_FOUND, title = "X", wrap = "instance")]
+   |                                                                                    ^^^^^^^^^^

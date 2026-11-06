@@ -1,0 +1,5 @@
+error: problem sets cannot be generic
+ --> tests/ui/problem_set/generic.rs:4:13
+  |
+4 | enum Generic<T> {
+  |             ^^^

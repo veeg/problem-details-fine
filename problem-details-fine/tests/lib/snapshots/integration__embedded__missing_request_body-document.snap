@@ -1,0 +1,9 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "status": 400,
+  "title": "The HTTP request did not provide a body when expected",
+  "type": "tag:veeg.dev,2026:MISSING_REQUEST_BODY"
+}

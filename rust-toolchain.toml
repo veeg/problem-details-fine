@@ -1,0 +1,4 @@
+# Pinned so the trybuild compiler output in `problem-details-fine/tests/ui` stays stable.
+[toolchain]
+channel = "1.99.1"
+components = ["clippy", "rustfmt"]

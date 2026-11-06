@@ -1,0 +1,54 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: schema
+---
+{
+  "description": "The credentials do not give access to the endpoint.",
+  "properties": {
+    "detail": {
+      "description": "A human-readable explanation specific to this occurrence of the problem.",
+      "type": "string"
+    },
+    "instance": {
+      "description": "A URI reference that identifies this occurrence of the problem.",
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "missing_scopes": {
+      "description": "The scopes that the credentials do not have.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "status": {
+      "description": "The HTTP status code of the problem.",
+      "enum": [
+        403
+      ],
+      "type": "integer"
+    },
+    "title": {
+      "description": "A short, human-readable summary of the problem type.",
+      "examples": [
+        "The provided credentials do not have access to the requested endpoint"
+      ],
+      "type": "string"
+    },
+    "type": {
+      "description": "A URI reference that identifies the problem type.",
+      "enum": [
+        "tag:veeg.dev,2026:FORBIDDEN"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "status",
+    "title",
+    "missing_scopes"
+  ],
+  "title": "FORBIDDEN",
+  "type": "object"
+}

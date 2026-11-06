@@ -1,0 +1,15 @@
+error: `problem_type` requires `type = ...`
+ --> tests/ui/problem_type/missing_required.rs:3:1
+  |
+3 | #[problem_type(status = NOT_FOUND)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `problem_type` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `problem_type` requires `title = ...`
+ --> tests/ui/problem_type/missing_required.rs:3:1
+  |
+3 | #[problem_type(status = NOT_FOUND)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `problem_type` (in Nightly builds, run with -Z macro-backtrace for more info)

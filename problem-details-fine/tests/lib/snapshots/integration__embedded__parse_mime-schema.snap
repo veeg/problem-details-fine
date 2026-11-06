@@ -1,0 +1,121 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: schema
+---
+{
+  "allOf": [
+    {
+      "properties": {
+        "detail": {
+          "description": "A human-readable explanation specific to this occurrence of the problem.",
+          "type": "string"
+        },
+        "instance": {
+          "description": "A URI reference that identifies this occurrence of the problem.",
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "status": {
+          "description": "The HTTP status code of the problem.",
+          "enum": [
+            400
+          ],
+          "type": "integer"
+        },
+        "title": {
+          "description": "A short, human-readable summary of the problem type.",
+          "examples": [
+            "An HTTP header containing a media type encountered a parsing issue"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "description": "A URI reference that identifies the problem type.",
+          "enum": [
+            "tag:veeg.dev,2026:PARSE_MIME"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status",
+        "title"
+      ],
+      "title": "PARSE_MIME",
+      "type": "object"
+    },
+    {
+      "description": "The server cannot parse a header that contains a media type.",
+      "oneOf": [
+        {
+          "description": "The header value has characters that are not visible ASCII.",
+          "properties": {
+            "header": {
+              "description": "The header that contains the media type.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "INVALID_ASCII"
+              ],
+              "type": "string"
+            },
+            "raw_value": {
+              "description": "The bytes of the header value.",
+              "items": {
+                "format": "int32",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "header",
+            "raw_value",
+            "kind"
+          ],
+          "title": "INVALID_ASCII",
+          "type": "object"
+        },
+        {
+          "description": "The header value is not a valid media type.",
+          "properties": {
+            "header": {
+              "description": "The header that contains the media type.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "PARSE_ERROR"
+              ],
+              "type": "string"
+            },
+            "message": {
+              "description": "A message that describes the parse error.",
+              "type": "string"
+            },
+            "raw_value": {
+              "description": "The bytes of the header value.",
+              "items": {
+                "format": "int32",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "header",
+            "message",
+            "raw_value",
+            "kind"
+          ],
+          "title": "PARSE_ERROR",
+          "type": "object"
+        }
+      ]
+    }
+  ]
+}

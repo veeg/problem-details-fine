@@ -1,0 +1,13 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "detail": "failed to parse path parameter `abc` into expected type `u32`",
+  "expected_type": "u32",
+  "kind": "PARSE_ERROR",
+  "status": 400,
+  "title": "A dynamic HTTP path parameter encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_PATH_PARAMETER",
+  "value": "abc"
+}

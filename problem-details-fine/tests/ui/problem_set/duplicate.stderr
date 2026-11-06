@@ -1,0 +1,11 @@
+error: `A` is listed more than once in this problem set
+ --> tests/ui/problem_set/duplicate.rs:9:12
+  |
+9 |     Second(A),
+  |            ^
+
+error: `A` is listed more than once in this problem set
+  --> tests/ui/problem_set/duplicate.rs:12:25
+   |
+12 | #[problem_set(documents(A))]
+   |                         ^

@@ -1,0 +1,16 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "detail": "scheme `Basic` is no longer supported; supported schemes are: Bearer, DPoP",
+  "found": "Basic",
+  "kind": "DEPRECATED_SCHEME",
+  "status": 401,
+  "supported": [
+    "Bearer",
+    "DPoP"
+  ],
+  "title": "The request lacked appropriate or acceptable authentication",
+  "type": "tag:veeg.dev,2026:UNAUTHORIZED"
+}

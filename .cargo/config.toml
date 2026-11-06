@@ -1,0 +1,4 @@
+[alias]
+# Documentation with every feature enabled. For feature badges, use nightly as docs.rs does:
+#   RUSTDOCFLAGS="--cfg docsrs" cargo +nightly docsrs
+docsrs = "doc --workspace --no-deps --all-features"

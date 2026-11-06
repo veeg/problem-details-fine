@@ -1,0 +1,197 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: schema
+---
+{
+  "allOf": [
+    {
+      "properties": {
+        "detail": {
+          "description": "A human-readable explanation specific to this occurrence of the problem.",
+          "type": "string"
+        },
+        "instance": {
+          "description": "A URI reference that identifies this occurrence of the problem.",
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "status": {
+          "description": "The HTTP status code of the problem.",
+          "enum": [
+            401
+          ],
+          "type": "integer"
+        },
+        "title": {
+          "description": "A short, human-readable summary of the problem type.",
+          "examples": [
+            "The request lacked appropriate or acceptable authentication"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "description": "A URI reference that identifies the problem type.",
+          "enum": [
+            "tag:veeg.dev,2026:UNAUTHORIZED"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status",
+        "title"
+      ],
+      "title": "UNAUTHORIZED",
+      "type": "object"
+    },
+    {
+      "description": "The request does not have correct authentication.",
+      "oneOf": [
+        {
+          "description": "The credentials are not valid, or they are revoked.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "CREDENTIALS"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "CREDENTIALS",
+          "type": "object"
+        },
+        {
+          "description": "The request has no `Authorization` header.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "MISSING_AUTHORIZATION"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "MISSING_AUTHORIZATION",
+          "type": "object"
+        },
+        {
+          "description": "The `Authorization` header has no credentials.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "MISSING_CREDENTIALS"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "MISSING_CREDENTIALS",
+          "type": "object"
+        },
+        {
+          "description": "The server cannot read the `Authorization` header, because its format is not correct.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "MALFORMED_HEADER"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "MALFORMED_HEADER",
+          "type": "object"
+        },
+        {
+          "description": "The request uses an authentication scheme that the endpoint no longer supports.",
+          "properties": {
+            "found": {
+              "description": "The scheme in the `Authorization` header.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "DEPRECATED_SCHEME"
+              ],
+              "type": "string"
+            },
+            "supported": {
+              "description": "The schemes that the endpoint supports.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "found",
+            "supported",
+            "kind"
+          ],
+          "title": "DEPRECATED_SCHEME",
+          "type": "object"
+        },
+        {
+          "description": "The request uses an authentication scheme that the endpoint does not support.",
+          "properties": {
+            "found": {
+              "description": "The scheme in the `Authorization` header.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "UNSUPPORTED_SCHEME"
+              ],
+              "type": "string"
+            },
+            "supported": {
+              "description": "The schemes that the endpoint supports.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "found",
+            "supported",
+            "kind"
+          ],
+          "title": "UNSUPPORTED_SCHEME",
+          "type": "object"
+        },
+        {
+          "description": "The OIDC token in the request is not valid.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "OIDC_VALIDATION_ERROR"
+              ],
+              "type": "string"
+            },
+            "message": {
+              "description": "A message that describes the validation error.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "message",
+            "kind"
+          ],
+          "title": "OIDC_VALIDATION_ERROR",
+          "type": "object"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "status": 503,
+  "title": "A downstream dependency was unresponsive or otherwise incomprehensible",
+  "type": "tag:veeg.dev,2026:DEPENDENCY"
+}

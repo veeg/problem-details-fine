@@ -1,0 +1,29 @@
+error: `omit(detail)` cannot be combined with `detail`
+ --> tests/ui/problem_type/omit.rs:3:86
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", detail = "x", omit(detail))]
+  |                                                                                      ^^^
+
+error: `omit(detail)` cannot be combined with `detail_with`
+  --> tests/ui/problem_type/omit.rs:10:91
+   |
+10 | #[problem_type(type = "tag:x.test,2025:B", status = NOT_FOUND, title = "X", detail_with = describe, omit(detail))]
+   |                                                                                           ^^^^^^^^
+
+error: `omit(detail)` cannot be combined with `#[problem(detail = ..)]`
+  --> tests/ui/problem_type/omit.rs:16:24
+   |
+16 |     #[problem(detail = "x")]
+   |                        ^^^
+
+error: `omit` accepts only `detail` and `instance`
+  --> tests/ui/problem_type/omit.rs:21:82
+   |
+21 | #[problem_type(type = "tag:x.test,2025:D", status = NOT_FOUND, title = "X", omit(title))]
+   |                                                                                  ^^^^^
+
+error: `detail` is already in `omit`
+  --> tests/ui/problem_type/omit.rs:24:90
+   |
+24 | #[problem_type(type = "tag:x.test,2025:E", status = NOT_FOUND, title = "X", omit(detail, detail))]
+   |                                                                                          ^^^^^^

@@ -1,0 +1,11 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "detail": "no `Authorization` header present",
+  "kind": "MISSING_AUTHORIZATION",
+  "status": 401,
+  "title": "The request lacked appropriate or acceptable authentication",
+  "type": "tag:veeg.dev,2026:UNAUTHORIZED"
+}

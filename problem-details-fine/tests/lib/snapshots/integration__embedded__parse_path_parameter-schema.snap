@@ -1,0 +1,111 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: schema
+---
+{
+  "allOf": [
+    {
+      "properties": {
+        "detail": {
+          "description": "A human-readable explanation specific to this occurrence of the problem.",
+          "type": "string"
+        },
+        "instance": {
+          "description": "A URI reference that identifies this occurrence of the problem.",
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "status": {
+          "description": "The HTTP status code of the problem.",
+          "enum": [
+            400
+          ],
+          "type": "integer"
+        },
+        "title": {
+          "description": "A short, human-readable summary of the problem type.",
+          "examples": [
+            "A dynamic HTTP path parameter encountered a parsing issue"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "description": "A URI reference that identifies the problem type.",
+          "enum": [
+            "tag:veeg.dev,2026:PARSE_PATH_PARAMETER"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status",
+        "title"
+      ],
+      "title": "PARSE_PATH_PARAMETER",
+      "type": "object"
+    },
+    {
+      "description": "The server cannot parse a path parameter.",
+      "oneOf": [
+        {
+          "description": "The path parameter does not have the expected type.",
+          "properties": {
+            "expected_type": {
+              "description": "The expected type of the path parameter.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "PARSE_ERROR"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "description": "The value of the path parameter.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "expected_type",
+            "kind"
+          ],
+          "title": "PARSE_ERROR",
+          "type": "object"
+        },
+        {
+          "description": "The path parameter does not deserialize.",
+          "properties": {
+            "key": {
+              "description": "The name of the path parameter.",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "DESERIALIZE"
+              ],
+              "type": "string"
+            },
+            "message": {
+              "description": "A message that describes the deserialization error.",
+              "type": "string"
+            },
+            "value": {
+              "description": "The value of the path parameter.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "key",
+            "value",
+            "message",
+            "kind"
+          ],
+          "title": "DESERIALIZE",
+          "type": "object"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+error[E0277]: `Manual` implements `ProblemType` by hand
+ --> tests/ui/problem_type/manual_problem_type.rs:7:22
+  |
+7 | impl ProblemType for Manual {
+  |                      ^^^^^^ define this problem type with `#[problem_type(...)]`
+  |
+help: the trait `problem_details_fine::__private::ProblemTypeImpl` is not implemented for `Manual`
+ --> tests/ui/problem_type/manual_problem_type.rs:5:1
+  |
+5 | struct Manual;
+  | ^^^^^^^^^^^^^
+  = note: only the `#[problem_type]` attribute can implement `ProblemType`
+note: required by a bound in `ProblemType`
+ --> src/problem/type.rs
+  |
+  | pub trait ProblemType: Serialize + ProblemTypeImpl + 'static {
+  |                                    ^^^^^^^^^^^^^^^ required by this bound in `ProblemType`
+
+error[E0277]: `Manual` implements `ProblemType` by hand
+ --> tests/ui/problem_type/manual_problem_type.rs:9:44
+  |
+9 |     const TAG: Option<&'static str> = Some(Self::TYPE);
+  |                                            ^^^^ define this problem type with `#[problem_type(...)]`
+  |
+help: the trait `problem_details_fine::__private::ProblemTypeImpl` is not implemented for `Manual`
+ --> tests/ui/problem_type/manual_problem_type.rs:5:1
+  |
+5 | struct Manual;
+  | ^^^^^^^^^^^^^
+  = note: only the `#[problem_type]` attribute can implement `ProblemType`
+note: required by a bound in `TYPE`
+ --> src/problem/type.rs
+  |
+  | pub trait ProblemType: Serialize + ProblemTypeImpl + 'static {
+  |                                    ^^^^^^^^^^^^^^^ required by this bound in `ProblemType::TYPE`
+  |     /// The type URI, as written in the definition. A rewrite does not change this value.
+  |     const TYPE: &'static str;
+  |           ---- required by a bound in this associated constant

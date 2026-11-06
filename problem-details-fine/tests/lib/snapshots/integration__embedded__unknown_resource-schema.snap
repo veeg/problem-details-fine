@@ -1,0 +1,56 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: schema
+---
+{
+  "description": "The server cannot find a resource that the request refers to.",
+  "properties": {
+    "detail": {
+      "description": "A human-readable explanation specific to this occurrence of the problem.",
+      "type": "string"
+    },
+    "instance": {
+      "description": "A URI reference that identifies this occurrence of the problem.",
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "resource_identifier": {
+      "description": "The identifier of the resource.",
+      "type": "string"
+    },
+    "resource_type": {
+      "description": "The type of the resource.",
+      "type": "string"
+    },
+    "status": {
+      "description": "The HTTP status code of the problem.",
+      "enum": [
+        404
+      ],
+      "type": "integer"
+    },
+    "title": {
+      "description": "A short, human-readable summary of the problem type.",
+      "examples": [
+        "A resource that was expected to exist could not be found"
+      ],
+      "type": "string"
+    },
+    "type": {
+      "description": "A URI reference that identifies the problem type.",
+      "enum": [
+        "tag:veeg.dev,2026:UNKNOWN_RESOURCE"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "status",
+    "title",
+    "resource_type",
+    "resource_identifier"
+  ],
+  "title": "UNKNOWN_RESOURCE",
+  "type": "object"
+}

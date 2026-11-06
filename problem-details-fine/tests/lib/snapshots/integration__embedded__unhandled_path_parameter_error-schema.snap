@@ -1,0 +1,45 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: schema
+---
+{
+  "properties": {
+    "detail": {
+      "description": "A human-readable explanation specific to this occurrence of the problem.",
+      "type": "string"
+    },
+    "instance": {
+      "description": "A URI reference that identifies this occurrence of the problem.",
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "status": {
+      "description": "The HTTP status code of the problem.",
+      "enum": [
+        500
+      ],
+      "type": "integer"
+    },
+    "title": {
+      "description": "A short, human-readable summary of the problem type.",
+      "examples": [
+        "Parsing and processing the HTTP path parameter encountered a fatal error"
+      ],
+      "type": "string"
+    },
+    "type": {
+      "description": "A URI reference that identifies the problem type.",
+      "enum": [
+        "tag:veeg.dev,2026:UNHANDLED_PATH_PARAMETER_ERROR"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "status",
+    "title"
+  ],
+  "title": "UNHANDLED_PATH_PARAMETER_ERROR",
+  "type": "object"
+}

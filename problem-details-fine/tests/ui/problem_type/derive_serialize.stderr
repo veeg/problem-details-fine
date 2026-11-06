@@ -1,0 +1,27 @@
+error: remove `Serialize` from this derive; `problem_type` implements `Serialize`
+ --> tests/ui/problem_type/derive_serialize.rs:7:10
+  |
+7 | #[derive(serde::Serialize)]
+  |          ^^^^^^^^^^^^^^^^
+
+error: remove `Serialize` from this derive; `problem_type` implements `Serialize`
+  --> tests/ui/problem_type/derive_serialize.rs:17:24
+   |
+17 | #[derive(Debug, Clone, serde::Serialize)]
+   |                        ^^^^^^^^^^^^^^^^
+
+error: remove `Serialize` from this derive; `problem_type` implements `Serialize`
+  --> tests/ui/problem_type/derive_serialize.rs:25:10
+   |
+25 | #[derive(serde::Serialize)]
+   |          ^^^^^^^^^^^^^^^^
+
+error[E0119]: conflicting implementations of trait `Serialize` for type `Before`
+  --> tests/ui/problem_type/derive_serialize.rs:12:1
+   |
+11 | #[derive(serde::Serialize)]
+   |          ---------------- first implementation here
+12 | #[problem_type(type = "tag:x.test,2025:BEFORE", status = NOT_FOUND, title = "X")]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `Before`
+   |
+   = note: this error originates in the attribute macro `problem_type` (in Nightly builds, run with -Z macro-backtrace for more info)

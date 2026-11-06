@@ -1,0 +1,11 @@
+error: problem types cannot be generic
+ --> tests/ui/problem_type/generic_and_union.rs:4:15
+  |
+4 | struct Generic<T> {
+  |               ^^^
+
+error: `problem_type` supports structs and enums, not unions
+ --> tests/ui/problem_type/generic_and_union.rs:9:1
+  |
+9 | union Union {
+  | ^^^^^

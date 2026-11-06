@@ -1,0 +1,13 @@
+error: an empty problem set documents nothing; add variants or `documents(...)`
+ --> tests/ui/problem_set/empty.rs:4:6
+  |
+4 | enum Empty {}
+  |      ^^^^^
+
+error: `problem_set` must be applied to an enum whose variants each hold one problem type or problem set
+ --> tests/ui/problem_set/empty.rs:6:1
+  |
+6 | #[problem_set]
+  | ^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `problem_set` (in Nightly builds, run with -Z macro-backtrace for more info)

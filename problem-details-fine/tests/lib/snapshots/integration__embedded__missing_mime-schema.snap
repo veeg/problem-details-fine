@@ -1,0 +1,51 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: schema
+---
+{
+  "description": "The request does not have a header with a media type.",
+  "properties": {
+    "detail": {
+      "description": "A human-readable explanation specific to this occurrence of the problem.",
+      "type": "string"
+    },
+    "header": {
+      "description": "The header that the request does not have.",
+      "type": "string"
+    },
+    "instance": {
+      "description": "A URI reference that identifies this occurrence of the problem.",
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "status": {
+      "description": "The HTTP status code of the problem.",
+      "enum": [
+        415
+      ],
+      "type": "integer"
+    },
+    "title": {
+      "description": "A short, human-readable summary of the problem type.",
+      "examples": [
+        "The HTTP request did not provide a header containing a media type when expected"
+      ],
+      "type": "string"
+    },
+    "type": {
+      "description": "A URI reference that identifies the problem type.",
+      "enum": [
+        "tag:veeg.dev,2026:MISSING_MIME"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "status",
+    "title",
+    "header"
+  ],
+  "title": "MISSING_MIME",
+  "type": "object"
+}

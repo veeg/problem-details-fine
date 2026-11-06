@@ -1,0 +1,18 @@
+---
+source: problem-details-fine/tests/integration/embedded.rs
+expression: document
+---
+{
+  "column": 9,
+  "detail": "type mismatch in request body field `name`; found value `1` of type `Integer`; expected type `String`; message: `expected a string`",
+  "expected_type": "STRING",
+  "field": "name",
+  "found_type": "INTEGER",
+  "kind": "TYPE_MISMATCH",
+  "line": 1,
+  "message": "expected a string",
+  "status": 400,
+  "title": "The HTTP request body encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_REQUEST_BODY",
+  "value": "1"
+}

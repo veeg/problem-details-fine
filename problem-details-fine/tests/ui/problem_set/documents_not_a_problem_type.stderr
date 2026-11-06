@@ -1,0 +1,46 @@
+error[E0277]: `Plain` is neither a problem type nor a problem set
+ --> tests/ui/problem_set/documents_not_a_problem_type.rs:9:25
+  |
+9 | #[problem_set(documents(Plain))]
+  |                         ^^^^^ not a problem type or problem set
+  |
+help: the trait `ProblemType` is not implemented for `Plain`
+ --> tests/ui/problem_set/documents_not_a_problem_type.rs:7:1
+  |
+7 | struct Plain;
+  | ^^^^^^^^^^^^
+  = note: define problem types with `#[problem_type(..)]` and problem sets with `#[problem_set]`
+  = note: do not implement `ProblemSet` by hand
+help: the trait `ProblemType` is implemented for `A`
+ --> tests/ui/problem_set/documents_not_a_problem_type.rs:3:1
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X")]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: required for `Plain` to implement `problem_details_fine::__private::ProblemSetImpl`
+  = note: this error originates in the attribute macro `problem_type` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `Plain` is neither a problem type nor a problem set
+ --> tests/ui/problem_set/documents_not_a_problem_type.rs:9:25
+  |
+9 | #[problem_set(documents(Plain))]
+  |                         ^^^^^ not a problem type or problem set
+  |
+help: the trait `problem_details_fine::__private::utoipa::__dev::ComposeSchema` is not implemented for `Plain`
+ --> tests/ui/problem_set/documents_not_a_problem_type.rs:7:1
+  |
+7 | struct Plain;
+  | ^^^^^^^^^^^^
+  = note: define problem types with `#[problem_type(..)]` and problem sets with `#[problem_set]`
+  = note: do not implement `ProblemSet` by hand
+  = help: the following other types implement trait `problem_details_fine::__private::utoipa::__dev::ComposeSchema`:
+            &[T]
+            &mut [T]
+            &str
+            BTreeMap<K, T>
+            BTreeSet<K>
+            Box<T>
+            Cow<'a, T>
+            HashMap<K, T, S>
+          and $N others
+  = note: required for `Plain` to implement `problem_details_fine::__private::utoipa::PartialSchema`
+  = note: required for `Plain` to implement `problem_details_fine::__private::ProblemSetImpl`

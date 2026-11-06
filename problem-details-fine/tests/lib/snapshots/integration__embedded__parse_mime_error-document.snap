@@ -1,0 +1,17 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "the provided `accept` header with value `x/` could not be parsed as a media type: bad",
+  "header": "accept",
+  "kind": "PARSE_ERROR",
+  "message": "bad",
+  "raw_value": [
+    120,
+    47
+  ],
+  "status": 400,
+  "title": "An HTTP header containing a media type encountered a parsing issue",
+  "type": "tag:veeg.dev,2026:PARSE_MIME"
+}

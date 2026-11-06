@@ -1,0 +1,17 @@
+error: a problem type `status` must be a client or server error (400-599)
+ --> tests/ui/problem_type/status.rs:3:53
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = 302, title = "X")]
+  |                                                     ^^^
+
+error: `OK` is not a 4xx/5xx `http::StatusCode` constant; use a name like `NOT_FOUND` or a number like `404`
+ --> tests/ui/problem_type/status.rs:6:53
+  |
+6 | #[problem_type(type = "tag:x.test,2025:B", status = OK, title = "X")]
+  |                                                     ^^
+
+error: `NOT_A_STATUS` is not a 4xx/5xx `http::StatusCode` constant; use a name like `NOT_FOUND` or a number like `404`
+ --> tests/ui/problem_type/status.rs:9:53
+  |
+9 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_A_STATUS, title = "X")]
+  |                                                     ^^^^^^^^^^^^

@@ -1,0 +1,2201 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Widgets",
+    "description": "An example service of `problem-details-fine`.",
+    "contact": {
+      "name": "Vegard Sandengen",
+      "email": "vegardsandengen@proton.me"
+    },
+    "license": {
+      "name": "MIT OR Apache-2.0",
+      "identifier": "MIT OR Apache-2.0"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/widgets": {
+      "get": {
+        "tags": [],
+        "summary": "Lists the widgets.",
+        "operationId": "list_widgets",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of widgets. The default is 20.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The widgets, by identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Widget"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "PARSE_QUERY_PARAMETER",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            400
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "An HTTP query parameter encountered a parsing issue"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:PARSE_QUERY_PARAMETER"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "title": "MISSING_REQUIRED_FIELD",
+                          "description": "The query string does not have a required parameter.",
+                          "required": [
+                            "field",
+                            "kind"
+                          ],
+                          "properties": {
+                            "field": {
+                              "type": "string",
+                              "description": "The name of the parameter."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_REQUIRED_FIELD"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "DESERIALIZE",
+                          "description": "A query parameter does not deserialize into the expected type.",
+                          "required": [
+                            "field",
+                            "message",
+                            "kind"
+                          ],
+                          "properties": {
+                            "expected_type": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "description": "The expected type of the parameter, if it is known."
+                            },
+                            "field": {
+                              "type": "string",
+                              "description": "The name of the parameter."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "DESERIALIZE"
+                              ]
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "A message that describes the deserialization error."
+                            },
+                            "value": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "description": "The value of the parameter, if it is known."
+                            }
+                          }
+                        }
+                      ],
+                      "description": "The server cannot parse the query string."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "UNAUTHORIZED",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            401
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The request lacked appropriate or acceptable authentication"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNAUTHORIZED"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "title": "CREDENTIALS",
+                          "description": "The credentials are not valid, or they are revoked.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_AUTHORIZATION",
+                          "description": "The request has no `Authorization` header.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_AUTHORIZATION"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_CREDENTIALS",
+                          "description": "The `Authorization` header has no credentials.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MALFORMED_HEADER",
+                          "description": "The server cannot read the `Authorization` header, because its format is not correct.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MALFORMED_HEADER"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "DEPRECATED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint no longer supports.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "DEPRECATED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "UNSUPPORTED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint does not support.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "UNSUPPORTED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "OIDC_VALIDATION_ERROR",
+                          "description": "The OIDC token in the request is not valid.",
+                          "required": [
+                            "message",
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "OIDC_VALIDATION_ERROR"
+                              ]
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "A message that describes the validation error."
+                            }
+                          }
+                        }
+                      ],
+                      "description": "The request does not have correct authentication."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "FORBIDDEN",
+                  "description": "The credentials do not give access to the endpoint.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "missing_scopes"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "missing_scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The scopes that the credentials do not have."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        403
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "The provided credentials do not have access to the requested endpoint"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:FORBIDDEN"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "UNHANDLED_QUERY_STRING_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "Parsing and processing the HTTP query string encountered a fatal error"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNHANDLED_QUERY_STRING_ERROR"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "INTERNAL_SERVER_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The server encountered an exceptional circumstance and was unable to proceed with processing the request"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:INTERNAL_SERVER_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "DEPENDENCY",
+                  "required": [
+                    "type",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        503
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "A downstream dependency was unresponsive or otherwise incomprehensible"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:DEPENDENCY"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [],
+        "summary": "Creates a widget.",
+        "operationId": "create_widget",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewWidget"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The new widget",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "title": "PARSE_MIME",
+                          "required": [
+                            "type",
+                            "status",
+                            "title"
+                          ],
+                          "properties": {
+                            "detail": {
+                              "type": "string",
+                              "description": "A human-readable explanation specific to this occurrence of the problem."
+                            },
+                            "instance": {
+                              "type": "string",
+                              "format": "uri-reference",
+                              "description": "A URI reference that identifies this occurrence of the problem."
+                            },
+                            "status": {
+                              "type": "integer",
+                              "description": "The HTTP status code of the problem.",
+                              "enum": [
+                                400
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "A short, human-readable summary of the problem type.",
+                              "examples": [
+                                "An HTTP header containing a media type encountered a parsing issue"
+                              ]
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "A URI reference that identifies the problem type.",
+                              "enum": [
+                                "tag:veeg.dev,2026:PARSE_MIME"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "title": "INVALID_ASCII",
+                              "description": "The header value has characters that are not visible ASCII.",
+                              "required": [
+                                "header",
+                                "raw_value",
+                                "kind"
+                              ],
+                              "properties": {
+                                "header": {
+                                  "type": "string",
+                                  "description": "The header that contains the media type."
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "INVALID_ASCII"
+                                  ]
+                                },
+                                "raw_value": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "format": "int32",
+                                    "minimum": 0
+                                  },
+                                  "description": "The bytes of the header value."
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "title": "PARSE_ERROR",
+                              "description": "The header value is not a valid media type.",
+                              "required": [
+                                "header",
+                                "message",
+                                "raw_value",
+                                "kind"
+                              ],
+                              "properties": {
+                                "header": {
+                                  "type": "string",
+                                  "description": "The header that contains the media type."
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "PARSE_ERROR"
+                                  ]
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "A message that describes the parse error."
+                                },
+                                "raw_value": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "integer",
+                                    "format": "int32",
+                                    "minimum": 0
+                                  },
+                                  "description": "The bytes of the header value."
+                                }
+                              }
+                            }
+                          ],
+                          "description": "The server cannot parse a header that contains a media type."
+                        }
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "title": "MISSING_REQUEST_BODY",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            400
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The HTTP request did not provide a body when expected"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:MISSING_REQUEST_BODY"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "title": "PARSE_REQUEST_BODY",
+                          "required": [
+                            "type",
+                            "status",
+                            "title"
+                          ],
+                          "properties": {
+                            "detail": {
+                              "type": "string",
+                              "description": "A human-readable explanation specific to this occurrence of the problem."
+                            },
+                            "instance": {
+                              "type": "string",
+                              "format": "uri-reference",
+                              "description": "A URI reference that identifies this occurrence of the problem."
+                            },
+                            "status": {
+                              "type": "integer",
+                              "description": "The HTTP status code of the problem.",
+                              "enum": [
+                                400
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "A short, human-readable summary of the problem type.",
+                              "examples": [
+                                "The HTTP request body encountered a parsing issue"
+                              ]
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "A URI reference that identifies the problem type.",
+                              "enum": [
+                                "tag:veeg.dev,2026:PARSE_REQUEST_BODY"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "title": "MISSING_REQUIRED_FIELD",
+                              "description": "The JSON does not have a field that the expected type requires.",
+                              "required": [
+                                "field",
+                                "kind"
+                              ],
+                              "properties": {
+                                "field": {
+                                  "type": "string",
+                                  "description": "The name of the field."
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "MISSING_REQUIRED_FIELD"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "title": "DESERIALIZE",
+                              "description": "The JSON does not deserialize into the expected type.",
+                              "required": [
+                                "field",
+                                "message",
+                                "line",
+                                "column",
+                                "kind"
+                              ],
+                              "properties": {
+                                "column": {
+                                  "type": "integer",
+                                  "description": "The column of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "field": {
+                                  "type": "string",
+                                  "description": "The path to the field. The path does not follow a standard such as `JSONPath`."
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "DESERIALIZE"
+                                  ]
+                                },
+                                "line": {
+                                  "type": "integer",
+                                  "description": "The line of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "A message that describes the error."
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description": "The value of the field, if it is known."
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "title": "TYPE_MISMATCH",
+                              "description": "A JSON value does not have the expected type.",
+                              "required": [
+                                "field",
+                                "message",
+                                "line",
+                                "column",
+                                "kind"
+                              ],
+                              "properties": {
+                                "column": {
+                                  "type": "integer",
+                                  "description": "The column of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "expected_type": {
+                                  "type": "string",
+                                  "description": "The types of a JSON value, in the `TypeMismatch` variant of `ParseRequestBodyProblem`.\n\nJSON has one number type. This enum has two, `Float` and `Integer`, because a Rust type can accept an integer\nand reject a number with a fraction.",
+                                  "enum": [
+                                    "STRING",
+                                    "BOOL",
+                                    "FLOAT",
+                                    "INTEGER",
+                                    "ARRAY",
+                                    "OBJECT",
+                                    "NULL"
+                                  ]
+                                },
+                                "field": {
+                                  "type": "string",
+                                  "description": "The path to the field. The path does not follow a standard such as `JSONPath`."
+                                },
+                                "found_type": {
+                                  "type": "string",
+                                  "description": "The types of a JSON value, in the `TypeMismatch` variant of `ParseRequestBodyProblem`.\n\nJSON has one number type. This enum has two, `Float` and `Integer`, because a Rust type can accept an integer\nand reject a number with a fraction.",
+                                  "enum": [
+                                    "STRING",
+                                    "BOOL",
+                                    "FLOAT",
+                                    "INTEGER",
+                                    "ARRAY",
+                                    "OBJECT",
+                                    "NULL"
+                                  ]
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "TYPE_MISMATCH"
+                                  ]
+                                },
+                                "line": {
+                                  "type": "integer",
+                                  "description": "The line of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "A message that describes the error."
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "description": "The value of the field, if it is known."
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "title": "SYNTAX",
+                              "description": "The request body is not valid JSON.",
+                              "required": [
+                                "field",
+                                "message",
+                                "line",
+                                "column",
+                                "kind"
+                              ],
+                              "properties": {
+                                "column": {
+                                  "type": "integer",
+                                  "description": "The column of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "field": {
+                                  "type": "string",
+                                  "description": "The path to the field with the error. The path does not follow a standard such as `JSONPath`."
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "SYNTAX"
+                                  ]
+                                },
+                                "line": {
+                                  "type": "integer",
+                                  "description": "The line of the error in the request body.",
+                                  "minimum": 0
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "The message from the JSON parser."
+                                }
+                              }
+                            }
+                          ],
+                          "description": "The server cannot parse the request body as JSON of the expected type."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "UNAUTHORIZED",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            401
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The request lacked appropriate or acceptable authentication"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNAUTHORIZED"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "title": "CREDENTIALS",
+                          "description": "The credentials are not valid, or they are revoked.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_AUTHORIZATION",
+                          "description": "The request has no `Authorization` header.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_AUTHORIZATION"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_CREDENTIALS",
+                          "description": "The `Authorization` header has no credentials.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MALFORMED_HEADER",
+                          "description": "The server cannot read the `Authorization` header, because its format is not correct.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MALFORMED_HEADER"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "DEPRECATED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint no longer supports.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "DEPRECATED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "UNSUPPORTED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint does not support.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "UNSUPPORTED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "OIDC_VALIDATION_ERROR",
+                          "description": "The OIDC token in the request is not valid.",
+                          "required": [
+                            "message",
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "OIDC_VALIDATION_ERROR"
+                              ]
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "A message that describes the validation error."
+                            }
+                          }
+                        }
+                      ],
+                      "description": "The request does not have correct authentication."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "FORBIDDEN",
+                  "description": "The credentials do not give access to the endpoint.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "missing_scopes"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "missing_scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The scopes that the credentials do not have."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        403
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "The provided credentials do not have access to the requested endpoint"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:FORBIDDEN"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "WidgetNameTaken",
+                  "description": "A problem type of this service. The other problem types come from the `embedded` module.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "name",
+                    "existing_id"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "existing_id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "The identifier of the widget that has the name.",
+                      "minimum": 0
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name in the request."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        409
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "A widget with this name already exists"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "https://widgets.example.com/problems/name-taken"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "MISSING_MIME",
+                      "description": "The request does not have a header with a media type.",
+                      "required": [
+                        "type",
+                        "status",
+                        "title",
+                        "header"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "header": {
+                          "type": "string",
+                          "description": "The header that the request does not have."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            415
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The HTTP request did not provide a header containing a media type when expected"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:MISSING_MIME"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "UNSUPPORTED_MIME",
+                      "description": "The endpoint does not support the media type of the request.",
+                      "required": [
+                        "type",
+                        "status",
+                        "title",
+                        "header",
+                        "found",
+                        "supported"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "found": {
+                          "type": "string",
+                          "description": "The media type in the header."
+                        },
+                        "header": {
+                          "type": "string",
+                          "description": "The header that contains the media type."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            415
+                          ]
+                        },
+                        "supported": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "The media types that the endpoint supports."
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The provided media type is unsupported by this endpoint"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNSUPPORTED_MIME"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "UNHANDLED_REQUEST_BODY_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "Parsing and processing the HTTP request body encountered a fatal error"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNHANDLED_REQUEST_BODY_ERROR"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "INTERNAL_SERVER_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The server encountered an exceptional circumstance and was unable to proceed with processing the request"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:INTERNAL_SERVER_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "DEPENDENCY",
+                  "required": [
+                    "type",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        503
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "A downstream dependency was unresponsive or otherwise incomprehensible"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:DEPENDENCY"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/{id}": {
+      "get": {
+        "tags": [],
+        "summary": "Returns one widget.",
+        "operationId": "get_widget",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The identifier of the widget",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The widget",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "PARSE_PATH_PARAMETER",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            400
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "A dynamic HTTP path parameter encountered a parsing issue"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:PARSE_PATH_PARAMETER"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "title": "PARSE_ERROR",
+                          "description": "The path parameter does not have the expected type.",
+                          "required": [
+                            "value",
+                            "expected_type",
+                            "kind"
+                          ],
+                          "properties": {
+                            "expected_type": {
+                              "type": "string",
+                              "description": "The expected type of the path parameter."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "PARSE_ERROR"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "The value of the path parameter."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "DESERIALIZE",
+                          "description": "The path parameter does not deserialize.",
+                          "required": [
+                            "key",
+                            "value",
+                            "message",
+                            "kind"
+                          ],
+                          "properties": {
+                            "key": {
+                              "type": "string",
+                              "description": "The name of the path parameter."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "DESERIALIZE"
+                              ]
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "A message that describes the deserialization error."
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "The value of the path parameter."
+                            }
+                          }
+                        }
+                      ],
+                      "description": "The server cannot parse a path parameter."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "UNAUTHORIZED",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            401
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The request lacked appropriate or acceptable authentication"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNAUTHORIZED"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "title": "CREDENTIALS",
+                          "description": "The credentials are not valid, or they are revoked.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_AUTHORIZATION",
+                          "description": "The request has no `Authorization` header.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_AUTHORIZATION"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MISSING_CREDENTIALS",
+                          "description": "The `Authorization` header has no credentials.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MISSING_CREDENTIALS"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "MALFORMED_HEADER",
+                          "description": "The server cannot read the `Authorization` header, because its format is not correct.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "MALFORMED_HEADER"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "DEPRECATED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint no longer supports.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "DEPRECATED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "UNSUPPORTED_SCHEME",
+                          "description": "The request uses an authentication scheme that the endpoint does not support.",
+                          "required": [
+                            "found",
+                            "supported",
+                            "kind"
+                          ],
+                          "properties": {
+                            "found": {
+                              "type": "string",
+                              "description": "The scheme in the `Authorization` header."
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "UNSUPPORTED_SCHEME"
+                              ]
+                            },
+                            "supported": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "The schemes that the endpoint supports."
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "title": "OIDC_VALIDATION_ERROR",
+                          "description": "The OIDC token in the request is not valid.",
+                          "required": [
+                            "message",
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "OIDC_VALIDATION_ERROR"
+                              ]
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "A message that describes the validation error."
+                            }
+                          }
+                        }
+                      ],
+                      "description": "The request does not have correct authentication."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "FORBIDDEN",
+                  "description": "The credentials do not give access to the endpoint.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "missing_scopes"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "missing_scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The scopes that the credentials do not have."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        403
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "The provided credentials do not have access to the requested endpoint"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:FORBIDDEN"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "UNKNOWN_RESOURCE",
+                  "description": "The server cannot find a resource that the request refers to.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "resource_type",
+                    "resource_identifier"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "resource_identifier": {
+                      "type": "string",
+                      "description": "The identifier of the resource."
+                    },
+                    "resource_type": {
+                      "type": "string",
+                      "description": "The type of the resource."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        404
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "A resource that was expected to exist could not be found"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:UNKNOWN_RESOURCE"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "UNHANDLED_PATH_PARAMETER_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "Parsing and processing the HTTP path parameter encountered a fatal error"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:UNHANDLED_PATH_PARAMETER_ERROR"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "INTERNAL_SERVER_ERROR",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            500
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "The server encountered an exceptional circumstance and was unable to proceed with processing the request"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:veeg.dev,2026:INTERNAL_SERVER_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "DEPENDENCY",
+                  "required": [
+                    "type",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        503
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "A downstream dependency was unresponsive or otherwise incomprehensible"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:veeg.dev,2026:DEPENDENCY"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NewWidget": {
+        "type": "object",
+        "description": "The body of a request that creates a widget.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the widget."
+          }
+        }
+      },
+      "Widget": {
+        "type": "object",
+        "description": "A widget.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The identifier of the widget.",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the widget. Each widget has a different name."
+          }
+        }
+      }
+    }
+  }
+}

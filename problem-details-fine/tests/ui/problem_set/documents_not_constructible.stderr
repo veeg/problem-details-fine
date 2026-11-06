@@ -1,0 +1,24 @@
+error[E0277]: `?` couldn't convert the error to `Set`
+  --> tests/ui/problem_set/documents_not_constructible.rs:15:11
+   |
+14 | fn handler() -> Result<(), Set> {
+   |                 --------------- expected `Set` because of this
+15 |     Err(B)?
+   |     ------^ the trait `From<B>` is not implemented for `Set`
+   |     |
+   |     this can't be annotated with `?` because it has type `Result<_, B>`
+   |
+note: `Set` needs to implement `From<B>`
+  --> tests/ui/problem_set/documents_not_constructible.rs:10:1
+   |
+10 | enum Set {
+   | ^^^^^^^^
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+help: the trait `From<B>` is not implemented for `Set`
+      but trait `From<A>` is implemented for it
+  --> tests/ui/problem_set/documents_not_constructible.rs:9:1
+   |
+ 9 | #[problem_set(documents(B))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: for that trait implementation, expected `A`, found `B`
+   = note: this error originates in the attribute macro `problem_set` (in Nightly builds, run with -Z macro-backtrace for more info)

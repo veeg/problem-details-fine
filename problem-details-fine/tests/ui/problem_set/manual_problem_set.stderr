@@ -1,0 +1,50 @@
+error[E0277]: `Manual` is neither a problem type nor a problem set
+  --> tests/ui/problem_set/manual_problem_set.rs:13:21
+   |
+13 | impl ProblemSet for Manual {
+   |                     ^^^^^^ not a problem type or problem set
+   |
+help: the trait `ProblemType` is not implemented for `Manual`
+  --> tests/ui/problem_set/manual_problem_set.rs:5:1
+   |
+ 5 | struct Manual;
+   | ^^^^^^^^^^^^^
+   = note: define problem types with `#[problem_type(..)]` and problem sets with `#[problem_set]`
+   = note: do not implement `ProblemSet` by hand
+   = note: required for `Manual` to implement `problem_details_fine::__private::ProblemSetImpl`
+note: required by a bound in `ProblemSet`
+  --> src/problem/set.rs
+   |
+   | pub trait ProblemSet: Serialize + Into<ProblemDetails> + ProblemSetImpl {
+   |                                                          ^^^^^^^^^^^^^^ required by this bound in `ProblemSet`
+
+error[E0277]: `Manual` is neither a problem type nor a problem set
+  --> tests/ui/problem_set/manual_problem_set.rs:13:21
+   |
+13 | impl ProblemSet for Manual {
+   |                     ^^^^^^ not a problem type or problem set
+   |
+help: the trait `problem_details_fine::__private::utoipa::__dev::ComposeSchema` is not implemented for `Manual`
+  --> tests/ui/problem_set/manual_problem_set.rs:5:1
+   |
+ 5 | struct Manual;
+   | ^^^^^^^^^^^^^
+   = note: define problem types with `#[problem_type(..)]` and problem sets with `#[problem_set]`
+   = note: do not implement `ProblemSet` by hand
+   = help: the following other types implement trait `problem_details_fine::__private::utoipa::__dev::ComposeSchema`:
+             &[T]
+             &mut [T]
+             &str
+             BTreeMap<K, T>
+             BTreeSet<K>
+             Box<T>
+             Cow<'a, T>
+             HashMap<K, T, S>
+           and $N others
+   = note: required for `Manual` to implement `problem_details_fine::__private::utoipa::PartialSchema`
+   = note: required for `Manual` to implement `problem_details_fine::__private::ProblemSetImpl`
+note: required by a bound in `ProblemSet`
+  --> src/problem/set.rs
+   |
+   | pub trait ProblemSet: Serialize + Into<ProblemDetails> + ProblemSetImpl {
+   |                                                          ^^^^^^^^^^^^^^ required by this bound in `ProblemSet`

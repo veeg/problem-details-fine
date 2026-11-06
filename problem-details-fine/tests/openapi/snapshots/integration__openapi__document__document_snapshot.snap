@@ -1,0 +1,564 @@
+---
+source: problem-details-fine/tests/openapi/document.rs
+expression: api
+---
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "problem-details-fine tests",
+    "version": "0.0.0"
+  },
+  "paths": {
+    "/widgets": {
+      "post": {
+        "tags": [],
+        "operationId": "create_widget",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "WrappedProblem",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "error"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "error": {
+                      "type": "object",
+                      "description": "A struct nested under the `error` member.",
+                      "required": [
+                        "type"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "The member named `type`, allowed because it is nested."
+                        }
+                      }
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        400
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Wrapped"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "https://fixtures.test/problems/wrapped"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "UNIT",
+                  "required": [
+                    "type",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        404
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Unit"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:fixtures.test,2025:UNIT"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "FlatProblem",
+                  "description": "A struct with flattened members, renamed by serde.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "widgetId",
+                    "count"
+                  ],
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "format": "int32",
+                      "description": "How often.",
+                      "minimum": 0
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "note": {
+                      "type": "string",
+                      "description": "Only present sometimes."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        409
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Flat"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "https://fixtures.test/problems/flat"
+                      ]
+                    },
+                    "widgetId": {
+                      "type": "string",
+                      "description": "The widget id.",
+                      "example": "w-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "title": "TAGGED",
+                      "required": [
+                        "type",
+                        "status",
+                        "title"
+                      ],
+                      "properties": {
+                        "detail": {
+                          "type": "string",
+                          "description": "A human-readable explanation specific to this occurrence of the problem."
+                        },
+                        "instance": {
+                          "type": "string",
+                          "format": "uri-reference",
+                          "description": "A URI reference that identifies this occurrence of the problem."
+                        },
+                        "status": {
+                          "type": "integer",
+                          "description": "The HTTP status code of the problem.",
+                          "enum": [
+                            422
+                          ]
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "A short, human-readable summary of the problem type.",
+                          "examples": [
+                            "Tagged"
+                          ]
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "A URI reference that identifies the problem type.",
+                          "enum": [
+                            "tag:fixtures.test,2025:TAGGED"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "Without members.",
+                          "required": [
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "PLAIN"
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "With members.",
+                          "required": [
+                            "name",
+                            "value",
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "FIELD"
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "integer",
+                              "format": "int64"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "description": "Uses the type-level detail.",
+                          "required": [
+                            "thing",
+                            "kind"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "FALLBACK"
+                              ]
+                            },
+                            "thing": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "An internally tagged enum, flattened."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "COMPUTED",
+                  "description": "A computed detail.",
+                  "required": [
+                    "type",
+                    "status",
+                    "title",
+                    "retry_after"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "retry_after": {
+                      "type": "integer",
+                      "format": "int32",
+                      "minimum": 0
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        429
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Computed"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:fixtures.test,2025:COMPUTED"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "ExplicitTitle",
+                  "required": [
+                    "type",
+                    "tag",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        503
+                      ]
+                    },
+                    "tag": {
+                      "type": "string",
+                      "description": "A tag URI that identifies the problem type.",
+                      "enum": [
+                        "tag:fixtures.test,2025:EXPLICIT"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Explicit"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "https://fixtures.test/problems/explicit-tag"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/{id}": {
+      "get": {
+        "tags": [],
+        "operationId": "get_widget",
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "title": "UNIT",
+                  "required": [
+                    "type",
+                    "status",
+                    "title"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "A human-readable explanation specific to this occurrence of the problem."
+                    },
+                    "instance": {
+                      "type": "string",
+                      "format": "uri-reference",
+                      "description": "A URI reference that identifies this occurrence of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The HTTP status code of the problem.",
+                      "enum": [
+                        404
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "A short, human-readable summary of the problem type.",
+                      "examples": [
+                        "Unit"
+                      ]
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "A URI reference that identifies the problem type.",
+                      "enum": [
+                        "tag:fixtures.test,2025:UNIT"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [],
+        "operationId": "delete_widget",
+        "responses": {
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlatProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FlatProblem": {
+        "type": "object",
+        "title": "FlatProblem",
+        "description": "A struct with flattened members, renamed by serde.",
+        "required": [
+          "type",
+          "status",
+          "title",
+          "widgetId",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How often.",
+            "minimum": 0
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human-readable explanation specific to this occurrence of the problem."
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies this occurrence of the problem."
+          },
+          "note": {
+            "type": "string",
+            "description": "Only present sometimes."
+          },
+          "status": {
+            "type": "integer",
+            "description": "The HTTP status code of the problem.",
+            "enum": [
+              409
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "A short, human-readable summary of the problem type.",
+            "examples": [
+              "Flat"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "A URI reference that identifies the problem type.",
+            "enum": [
+              "https://fixtures.test/problems/flat"
+            ]
+          },
+          "widgetId": {
+            "type": "string",
+            "description": "The widget id.",
+            "example": "w-1"
+          }
+        }
+      }
+    }
+  }
+}

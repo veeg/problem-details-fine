@@ -1,0 +1,36 @@
+error: with `#[serde(transparent)]` the derived Openapi schema would describe the fields rather than what is serialized; provide the schema with `payload_schema = path::to::fn`
+ --> tests/ui/problem_type/serde_shape.rs:5:8
+  |
+5 | struct Transparent {
+  |        ^^^^^^^^^^^
+
+error: with `#[serde(transparent)]` the derived Openapi schema would describe the fields rather than what is serialized; provide the schema with `payload_schema = path::to::fn`
+  --> tests/ui/problem_type/serde_shape.rs:11:8
+   |
+11 | struct TransparentWithoutSchema {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: with `#[serde(tag = ..)]` alone, a tuple variant only serializes when it holds a struct or map, which cannot be checked here; use named fields, add `#[serde(content = "<member>")]`, or nest the value with `wrap = "<member>"`
+  --> tests/ui/problem_type/serde_shape.rs:18:5
+   |
+18 |     A(u32),
+   |     ^^^^^^
+
+error: the extension member `detail` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+  --> tests/ui/problem_type/serde_shape.rs:22:33
+   |
+22 | #[serde(tag = "kind", content = "detail")]
+   |                                 ^^^^^^^^
+
+error: the extension member `status` collides with a reserved problem details member; rename it with `#[serde(rename = "...")]` or nest the members with `wrap = "<member>"`
+  --> tests/ui/problem_type/serde_shape.rs:29:5
+   |
+29 | /     #[cfg_attr(all(), serde(rename = "status"))]
+30 | |     code: u16,
+   | |_____________^
+
+error: `#[serde(into = ..)]` is not supported on problem types
+  --> tests/ui/problem_type/serde_shape.rs:36:8
+   |
+36 | struct Into {
+   |        ^^^^

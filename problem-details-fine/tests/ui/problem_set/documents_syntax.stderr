@@ -1,0 +1,5 @@
+error: expected parentheses
+ --> tests/ui/problem_set/documents_syntax.rs:7:25
+  |
+7 | #[problem_set(documents = A)]
+  |                         ^

@@ -1,0 +1,17 @@
+error: tuple structs serialize as a value, not as members, and cannot be flattened into the problem details document; name the fields, or nest the value with `wrap = "<member>"`
+ --> tests/ui/problem_type/not_flattenable.rs:4:8
+  |
+4 | struct Tuple(String);
+  |        ^^^^^
+
+error: enum extension members can only be flattened when the enum serializes as a map; add `#[serde(tag = "<member>")]`, or nest the value with `wrap = "<member>"`
+ --> tests/ui/problem_type/not_flattenable.rs:7:6
+  |
+7 | enum Untagged {
+  |      ^^^^^^^^
+
+error: `wrap` requires extension members, but this problem type has no fields
+  --> tests/ui/problem_type/not_flattenable.rs:11:84
+   |
+11 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", wrap = "value")]
+   |                                                                                    ^^^^^^^

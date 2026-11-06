@@ -1,0 +1,11 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "the expected `content-type` header is missing from the request",
+  "header": "content-type",
+  "status": 415,
+  "title": "The HTTP request did not provide a header containing a media type when expected",
+  "type": "tag:veeg.dev,2026:MISSING_MIME"
+}

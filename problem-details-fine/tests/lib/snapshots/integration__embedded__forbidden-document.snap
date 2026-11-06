@@ -1,0 +1,13 @@
+---
+source: problem-details-fine/tests/lib/embedded.rs
+expression: document
+---
+{
+  "detail": "the provided credentials are missing the following scope(s): widgets:write",
+  "missing_scopes": [
+    "widgets:write"
+  ],
+  "status": 403,
+  "title": "The provided credentials do not have access to the requested endpoint",
+  "type": "tag:veeg.dev,2026:FORBIDDEN"
+}

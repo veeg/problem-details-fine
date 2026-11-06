@@ -1,0 +1,5 @@
+error[E0425]: cannot find type `Missing` in this scope
+ --> tests/ui/problem_set/documents_unresolved.rs:7:25
+  |
+7 | #[problem_set(documents(Missing))]
+  |                         ^^^^^^^ not found in this scope
