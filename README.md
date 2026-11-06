@@ -85,6 +85,8 @@ No feature is enabled by default. The example above needs `embedded-types`.
 
 ## Development
 
+[`RELEASING.md`](RELEASING.md) describes how to make a release.
+
 Run the tests for each combination of features. This needs [`cargo-hack`](https://github.com/taiki-e/cargo-hack):
 
 ```sh
