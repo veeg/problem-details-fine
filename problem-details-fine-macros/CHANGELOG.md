@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/veeg/problem-details-fine/compare/problem-details-fine-macros-v0.1.0...problem-details-fine-macros-v0.1.1) - 2026-11-07
+
+### Added
+
+- add detail_as and fixed members to problem_type
+
+### Other
+
+- add Retrofit section for detail_as and fixed members
+- update crate metadata
+
 ## [0.1.0](https://github.com/veeg/problem-details-fine/releases/tag/problem-details-fine-macros-v0.1.0) - 2026-11-06
 
 ### Other
