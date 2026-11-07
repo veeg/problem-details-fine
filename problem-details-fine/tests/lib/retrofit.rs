@@ -1,6 +1,8 @@
 //! Retrofit: `detail_as` of `#[problem_type]` writes the rendered detail to an extension member instead of `detail`,
 //! and `fixed(...)` adds extension members with a constant value.
 
+use std::collections::BTreeMap;
+
 use problem_details_fine::{ProblemDetails, ProblemType, problem_type};
 use serde_json::json;
 
@@ -345,6 +347,77 @@ fn fixed_schema() {
     for name in ["small", "big", "double", "single"] {
         assert!(required.contains(&json!(name)), "{name} in {required:?}");
     }
+}
+
+/// A problem type with a `#[serde(flatten)]` field, whose members the macro cannot see at compile time. A key in
+/// `extra` can collide with the `detail_as` member `error` or the fixed member `code`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:FLATTENED_RETROFIT",
+    status = BAD_REQUEST,
+    title = "Flattened",
+    detail = "x",
+    detail_as = "error",
+    fixed(/** d */ code: &str = "C"),
+)]
+#[derive(Debug, Clone)]
+struct FlattenedRetrofit {
+    #[serde(flatten)]
+    extra: BTreeMap<String, String>,
+}
+
+fn flattened_retrofit(key: &str, value: &str) -> FlattenedRetrofit {
+    let mut extra = BTreeMap::new();
+    extra.insert(key.to_owned(), value.to_owned());
+    FlattenedRetrofit { extra }
+}
+
+#[test]
+fn flattened_collision_fails_serialize() {
+    let error = serde_json::to_string(&flattened_retrofit("code", "Z")).unwrap_err();
+    assert!(error.to_string().contains("also writes `code`"), "{error}");
+}
+
+#[test]
+fn flattened_collision_fails_from() {
+    let details = ProblemDetails::from(flattened_retrofit("code", "Z"));
+    let error = serde_json::to_string(&details).unwrap_err();
+    assert!(error.to_string().contains("also writes `code`"), "{error}");
+}
+
+#[test]
+fn flattened_no_collision_ok() {
+    let value = serde_json::to_value(flattened_retrofit("other", "1")).unwrap();
+    assert_eq!(value["other"], json!("1"));
+    assert_eq!(value["error"], json!("x"));
+    assert_eq!(value["code"], json!("C"));
+}
+
+#[cfg(feature = "utoipa")]
+#[test]
+#[should_panic(expected = "also writes `error`")]
+fn flattened_collision_in_schema_panics() {
+    use utoipa::PartialSchema;
+
+    /// A flattened field type whose own schema property `error` collides with `detail_as = "error"`.
+    #[derive(Debug, Clone, serde::Serialize, utoipa::ToSchema)]
+    struct Extra {
+        error: String,
+    }
+
+    #[problem_type(
+        type = "tag:fixtures.test,2025:FLATTENED_SCHEMA_RETROFIT",
+        status = BAD_REQUEST,
+        title = "Flattened schema",
+        detail = "x",
+        detail_as = "error",
+    )]
+    #[derive(Debug, Clone)]
+    struct FlattenedSchemaRetrofit {
+        #[serde(flatten)]
+        extra: Extra,
+    }
+
+    let _ = FlattenedSchemaRetrofit::schema();
 }
 
 /// A `fixed` value that arrives through a `macro_rules!` wrapper as `$v:expr`, and a parenthesized negative

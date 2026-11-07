@@ -14,7 +14,7 @@ use utoipa::{
 use crate::{
     MEDIA_TYPE, ProblemSet, ProblemType,
     identity::TypeIdentity,
-    problem::{Extensions, FixedValue, TagField, tag_collision},
+    problem::{Extensions, FixedValue, TagField, retrofit_collision, tag_collision},
 };
 
 /// One problem type in a [`ProblemSet`], for the Openapi responses.
@@ -125,9 +125,28 @@ pub fn problem_schema<T: ProblemType>(
         let collides = match T::__TAG_FIELD {
             TagField::No => false,
             TagField::Yes => true,
-            TagField::Unknown => payload.as_ref().is_some_and(has_tag_property),
+            TagField::Unknown => payload
+                .as_ref()
+                .is_some_and(|payload| has_property(payload, "tag")),
         };
         assert!(!collides, "{}", tag_collision(Some(T::__ID)));
+    }
+
+    // A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. That member can
+    // collide with a `detail_as` or fixed member.
+    if T::__OPEN_MEMBERS
+        && let Some(payload) = payload.as_ref()
+    {
+        let retrofit_names = T::__DETAIL_AS
+            .into_iter()
+            .chain(T::__FIXED.iter().map(|fixed| fixed.name));
+        for name in retrofit_names {
+            assert!(
+                !has_property(payload, name),
+                "{}",
+                retrofit_collision(T::__ID, name)
+            );
+        }
     }
 
     match (T::__EXTENSIONS, payload) {
@@ -241,11 +260,11 @@ fn base_schema<T: ProblemType>(resolved: &TypeIdentity<'_>) -> ObjectBuilder {
     })
 }
 
-/// Returns `true` if the schema, or an `allOf` item of it, has a `tag` property.
-fn has_tag_property(schema: &RefOr<Schema>) -> bool {
+/// Returns `true` if the schema, or an `allOf` item of it, has a property with this name.
+fn has_property(schema: &RefOr<Schema>, name: &str) -> bool {
     match schema {
-        RefOr::T(Schema::Object(object)) => object.properties.contains_key("tag"),
-        RefOr::T(Schema::AllOf(all_of)) => all_of.items.iter().any(has_tag_property),
+        RefOr::T(Schema::Object(object)) => object.properties.contains_key(name),
+        RefOr::T(Schema::AllOf(all_of)) => all_of.items.iter().any(|item| has_property(item, name)),
         _ => false,
     }
 }

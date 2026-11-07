@@ -310,10 +310,7 @@ impl ProblemDetails {
     /// check can find that collision.
     fn insert_retrofit_member(&mut self, definition: &str, name: &'static str, value: Value) {
         if self.extensions.contains_key(name) {
-            self.record_error(format!(
-                "the problem type `{definition}` writes `{name}` as a retrofit member, but the extension \
-                 members already have a member with that name"
-            ));
+            self.record_error(retrofit_collision(definition, name));
             return;
         }
         self.extensions.insert(name.to_owned(), value);
@@ -393,25 +390,37 @@ pub fn serialize_problem<T: ProblemType, S: Serializer>(
 ) -> Result<S::Ok, S::Error> {
     let identity = &T::__resolved().0;
     let tag_member = identity.tag_member();
-    if tag_member.is_some() {
-        let collides = match T::__TAG_FIELD {
-            TagField::No => false,
-            TagField::Yes => true,
-            // A flattened field can add a `tag` member. Only serialization shows it.
-            TagField::Unknown => matches!(
-                serde_json::to_value(ExtensionMembers(problem)),
-                Ok(Value::Object(members)) if members.contains_key("tag")
-            ),
-        };
-        if collides {
-            return Err(S::Error::custom(tag_collision(Some(T::__ID))));
-        }
+    if tag_member.is_some() && T::__TAG_FIELD == TagField::Yes {
+        return Err(S::Error::custom(tag_collision(Some(T::__ID))));
     }
     let rendered_detail = problem.detail();
     let (detail, retrofit_detail) = match T::__DETAIL_AS {
         Some(name) => (None, rendered_detail.map(|detail| (name, detail))),
         None => (rendered_detail, None),
     };
+
+    // A `#[serde(flatten)]` field can add a `tag` member, or a member that collides with a `detail_as` or fixed
+    // member. Only serialization shows these members. The code serializes the extension members once and uses the
+    // result for both checks.
+    let probe_tag = tag_member.is_some() && T::__TAG_FIELD == TagField::Unknown;
+    let has_retrofit_members = retrofit_detail.is_some() || !T::__FIXED.is_empty();
+    if T::__OPEN_MEMBERS
+        && (probe_tag || has_retrofit_members)
+        && let Ok(Value::Object(members)) = serde_json::to_value(ExtensionMembers(problem))
+    {
+        if probe_tag && members.contains_key("tag") {
+            return Err(S::Error::custom(tag_collision(Some(T::__ID))));
+        }
+        let retrofit_names = retrofit_detail
+            .iter()
+            .map(|(name, _)| *name)
+            .chain(T::__FIXED.iter().map(|fixed| fixed.name));
+        for name in retrofit_names {
+            if members.contains_key(name) {
+                return Err(S::Error::custom(retrofit_collision(T::__ID, name)));
+            }
+        }
+    }
     Document {
         type_uri: &identity.type_uri,
         tag_uri: tag_member,
@@ -437,6 +446,15 @@ pub(crate) fn tag_collision(definition: Option<&str>) -> String {
     format!(
         "{source} has a `tag` member from its tag URI, and also an extension member `tag`; remove the tag URI, \
          for example with `TagUri::Remove` in the rewrite configuration, or rename the extension member"
+    )
+}
+
+/// The error message if a `detail_as` or fixed member collides with a member that a `#[serde(flatten)]` field
+/// adds. The macro cannot see this collision at compile time.
+pub(crate) fn retrofit_collision(definition: &str, name: &str) -> String {
+    format!(
+        "the problem type `{definition}` writes the member `{name}` from `detail_as` or `fixed`, and a \
+         flattened field also writes `{name}`; rename one of them"
     )
 }
 
