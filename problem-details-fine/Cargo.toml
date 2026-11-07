@@ -1,15 +1,17 @@
 [package]
 name = "problem-details-fine"
-description = """
-  RFC 9457 problem details for HTTP API handlers: define problem types once, and combine them into problem sets.
 
-  Openapi schemas and responses with the `utoipa` feature. Problem types for common HTTP API errors with the `embedded-types` feature.
-"""
-authors = ["Vegard Sandengen <vegardsandengen@proton.me>"]
-version.workspace = true
+authors.workspace = true
+categories.workspace = true
+description.workspace = true
+documentation.workspace = true
 edition.workspace = true
-rust-version.workspace = true
+keywords.workspace = true
 license.workspace = true
+readme = "crates-io.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true

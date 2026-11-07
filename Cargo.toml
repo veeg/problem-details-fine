@@ -3,9 +3,15 @@ resolver = "3"
 members = ["problem-details-fine", "problem-details-fine-macros"]
 
 [workspace.package]
+authors = ["Vegard Sandengen <vegardsandengen@proton.me>"]
+categories = ["web-programming::http-server"]
+description = "An HTTP server error library"
+documentation = "https://docs.rs/problem-details-fine"
 edition = "2024"
-rust-version = "1.88"
+keywords = ["rfc9457", "problem-details", "api", "http", "error"]
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/veeg/problem-details-fine"
+rust-version = "1.88"
 version = "0.1.0"
 
 [workspace.dependencies]

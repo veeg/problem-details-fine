@@ -1,11 +1,16 @@
 [package]
 name = "problem-details-fine-macros"
+
+authors.workspace = true
+categories.workspace = true
 description = "Procedural macros for problem-details-fine"
-authors = ["Vegard Sandengen <vegardsandengen@proton.me>"]
-version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
+keywords.workspace = true
 license.workspace = true
+readme = "crates-io.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
 
 [lib]
 proc-macro = true
