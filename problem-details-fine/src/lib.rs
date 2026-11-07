@@ -176,6 +176,53 @@
     doc = "The `rewrite` module documents the rules."
 )]
 //!
+//! # Retrofit
+//!
+//! An API can already have an error format of its own, for example
+//! `{ "error": "...", "code": "WIDGET_CONFLICT", "success": false }`. With `detail_as` and `fixed(...)`, the API can
+//! send problem details documents that keep each member its clients read. `detail_as` writes the rendered detail to
+//! the extension member that you name, instead of `detail`. `fixed(...)` adds extension members with a constant
+//! value, such as a legacy `code` that identifies the problem type.
+//!
+//! ```rust
+//! use problem_details_fine::problem_type;
+//! use serde_json::json;
+//!
+//! #[problem_type(
+//!     type = "https://example.com/problems/widget-conflict",
+//!     status = CONFLICT,
+//!     title = "A widget with that id already exists",
+//!     detail = "widget `{id}` already exists",
+//!     detail_as = "error",
+//!     fixed(
+//!         /// The legacy error code. It does not change between releases.
+//!         code: &str = "WIDGET_CONFLICT",
+//!         /// Always `false` for errors.
+//!         success: bool = false,
+//!     ),
+//! )]
+//! #[derive(Debug)]
+//! struct WidgetConflict {
+//!     id: String,
+//! }
+//!
+//! assert_eq!(
+//!     serde_json::to_value(WidgetConflict { id: "w-1".into() }).unwrap(),
+//!     json!({
+//!         "type": "https://example.com/problems/widget-conflict",
+//!         "status": 409,
+//!         "title": "A widget with that id already exists",
+//!         "error": "widget `w-1` already exists",
+//!         "code": "WIDGET_CONFLICT",
+//!         "success": false,
+//!         "id": "w-1",
+//!     })
+//! );
+//! ```
+//!
+//! The document has no `detail` member. The `type`, `status` and `title` members do not change. See
+//! [Retrofit](problem_type#retrofit) in the `problem_type` documentation for the rules.
+//!
 //! [RFC 9457]: https://www.rfc-editor.org/rfc/rfc9457.html
 //! [RFC 4151]: https://www.rfc-editor.org/rfc/rfc4151.html
 
@@ -294,6 +341,8 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 /// | `title = "..."` | Yes | A short summary of the problem type. It is the same for each occurrence. |
 /// | `detail = "..."` | No | A format string for the `detail` member. It can use the fields, for example `"widget {id} exists"`. |
 /// | `detail_with = path` | No | A `fn(&Self) -> Option<String>` for the `detail` member. Do not use it with `detail`. |
+/// | `detail_as = "<member>"` | No | Writes the detail as this extension member instead of `detail`. |
+/// | `fixed(...)` | No | Extension members with a constant value. See [Retrofit](#retrofit). |
 /// | `tag = "tag:..."` | No | A tag URI for the problem type, if `type` is not a tag URI. The document then has a `tag` member. |
 /// | `wrap = "<member>"` | No | Puts the extension members in this one member. |
 /// | `schema_title = "..."` | No | The title of the Openapi schema. See [Schema title](#schema-title) for the default. |
@@ -365,6 +414,114 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 /// )]
 /// struct Maintenance;
 /// ```
+///
+/// # Retrofit
+///
+/// `detail_as` and `fixed(...)` add the members of an existing error format to a problem type. The document is then
+/// valid problem details, and it still has the members that a client reads. [Retrofit](crate#retrofit) in the crate
+/// documentation has an example.
+///
+/// ## `detail_as`
+///
+/// `detail = "..."`, `detail_with` and the variant attribute `#[problem(detail = "...")]` render the detail string
+/// exactly as they do without `detail_as`. With `detail_as = "<member>"`, the macro writes that string to the named
+/// extension member instead of `detail`. The document has no `detail` member. If the rendered value is `None`, the
+/// document also has no `detail_as` member.
+///
+/// [`ProblemType::detail`] still returns the rendered string. A caller can use it to log the problem. The
+/// [`ProblemDetails`] from [`ProblemDetails::from`] has the string in `extensions()`, under the `detail_as` name. Its
+/// `detail()` returns `None`. [`ProblemDetails::with_detail`] on that value adds a standard `detail` member next to
+/// the `detail_as` member. The two members are independent.
+///
+/// The Openapi schema leaves out `detail` and adds the `detail_as` member as a `string` property. The property is
+/// required if each value of the type has a format string. These types have one:
+///
+/// - A struct with the `detail` argument.
+/// - An enum with the `detail` argument.
+/// - An enum where each variant has `#[problem(detail = "...")]`.
+///
+/// The property is optional with `detail_with`, which returns `Option<String>`. It is also optional for an enum where
+/// a variant has no format string.
+///
+/// `detail_as` needs a detail source: the `detail` argument, `detail_with`, or `#[problem(detail = "...")]` on at
+/// least one variant. The macro rejects `detail_as` together with `omit(detail)`, because `detail_as` already leaves
+/// `detail` out of the schema.
+///
+/// ## `fixed(...)`
+///
+/// ```rust
+/// use problem_details_fine::problem_type;
+/// use serde_json::json;
+///
+/// #[problem_type(
+///     type = "https://example.com/problems/widget-conflict",
+///     status = CONFLICT,
+///     title = "A widget with that id already exists",
+///     fixed(
+///         /// The legacy error code. It does not change between releases.
+///         code: &str = "WIDGET_CONFLICT",
+///         /// Always `false` for errors.
+///         success: bool = false,
+///         /// A member whose name is not a Rust identifier.
+///         "error-kind": &str = "conflict",
+///     ),
+/// )]
+/// #[derive(Debug)]
+/// struct WidgetConflict;
+///
+/// assert_eq!(
+///     serde_json::to_value(WidgetConflict).unwrap(),
+///     json!({
+///         "type": "https://example.com/problems/widget-conflict",
+///         "status": 409,
+///         "title": "A widget with that id already exists",
+///         "code": "WIDGET_CONFLICT",
+///         "success": false,
+///         "error-kind": "conflict",
+///     })
+/// );
+/// ```
+///
+/// Each entry is a doc comment, a name, a type and `= <literal>`:
+///
+/// - The doc comment is required; it becomes the `description` of the schema property. A missing doc comment is a
+///   compile error.
+/// - The name is a Rust identifier, such as `code`, or a string literal, such as `"error-kind"`. Use a string literal
+///   for a name that is not a Rust identifier. The name of a raw identifier has no `r#`: `r#match` gives `match`. The
+///   rules in [Collisions](#collisions) apply to both forms.
+/// - The supported types are `&str` (or `&'static str`), `bool`, `i8`, `i16`, `i32`, `i64`, `isize`, `u8`, `u16`,
+///   `u32`, `u64`, `usize`, `f32` and `f64`. The value must be a literal of the declared type.
+///
+/// Each fixed member is a required property of the Openapi schema. The schema of the property is
+/// `enum: [<value>]`, with the value as its single allowed value.
+///
+/// Fixed members serialize at the top level of the document, in declaration order. They come after the `detail_as`
+/// member and before the fields. With `wrap`, they are next to the `wrap` member, not in it.
+/// [`ProblemDetails::from`] puts them in `extensions()`. That `serde_json::Map` sorts its keys, so the order there is
+/// alphabetical.
+///
+/// Serde container attributes such as `rename_all` do not rename a fixed member or the `detail_as` member. The
+/// document uses each name exactly as you write it. Nothing checks that fixed values, such as `code`, are unique
+/// across problem types.
+///
+/// ## Collisions
+///
+/// The name of a `detail_as` or fixed member follows the same rules as a field. See
+/// [Extension members](#extension-members) below. The name cannot be `type`, `status`, `title`, `detail` or
+/// `instance`. It also cannot be the same as one of these names:
+///
+/// - A field, after serde renames.
+/// - The `wrap` member.
+/// - The `#[serde(tag = "...")]` or `#[serde(content = "...")]` member.
+/// - Another fixed member, or the `detail_as` member.
+/// - `tag`, if the `tag` argument adds the `tag` member. This rule is the same as for a field.
+///
+/// The compiler gives an error for each collision. It also gives an error for a fixed entry without a doc comment,
+/// with an unsupported type, or with a value that does not match its declared type.
+///
+/// A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. If that member collides
+/// with a `detail_as` or fixed member, serialization fails at run time. Serialization of the [`ProblemDetails`] from
+/// [`ProblemDetails::from`] also fails, and the generation of the Openapi schema panics.
 ///
 /// # Extension members
 ///

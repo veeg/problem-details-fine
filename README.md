@@ -58,6 +58,51 @@ this document:
 The `documents(...)` argument adds `MissingRequestBodyProblem` to the Openapi documentation of the handler. The enum
 cannot hold `MissingRequestBodyProblem`.
 
+## Retrofit
+
+An API can already have an error format of its own, for example:
+
+```json
+{ "error": "widget `w-1` already exists", "code": "WIDGET_CONFLICT", "success": false }
+```
+
+With `detail_as` and `fixed(...)`, the API can send problem details documents that keep each member its clients read.
+`detail_as` writes the rendered detail to the extension member that you name, instead of `detail`. `fixed(...)` adds
+extension members with a constant value, such as a legacy `code`:
+
+```rust
+#[problem_type(
+    type = "https://example.com/problems/widget-conflict",
+    status = CONFLICT,
+    title = "A widget with that id already exists",
+    detail = "widget `{id}` already exists",
+    detail_as = "error",
+    fixed(
+        /// The legacy error code. It does not change between releases.
+        code: &str = "WIDGET_CONFLICT",
+        /// Always `false` for errors.
+        success: bool = false,
+    ),
+)]
+struct WidgetConflict {
+    id: String,
+}
+```
+
+`WidgetConflict { id: "w-1".into() }` serializes as this document:
+
+```json
+{
+  "type": "https://example.com/problems/widget-conflict",
+  "status": 409,
+  "title": "A widget with that id already exists",
+  "error": "widget `w-1` already exists",
+  "code": "WIDGET_CONFLICT",
+  "success": false,
+  "id": "w-1"
+}
+```
+
 ## Server example
 
 [`examples/widgets`](problem-details-fine/examples/widgets) is an `axum` server with Openapi documentation. Its
