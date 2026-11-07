@@ -2,7 +2,7 @@
 
 use crate::types::{
     ComputedProblem, ExplicitTagProblem, ExternalProblem, FlatProblem, NewtypeProblem,
-    TaggedProblem, UnitProblem, WrappedProblem,
+    RetrofitUnitProblem, RetrofitWrappedProblem, TaggedProblem, UnitProblem, WrappedProblem,
 };
 use problem_details_fine::problem_set;
 use serde_json::{Value, json};
@@ -90,6 +90,22 @@ fn statuses_shared_by_several_types_use_one_of() {
     let responses = responses::<BadRequests>();
     let schema = &responses["400"]["content"]["application/problem+json"]["schema"];
     assert_eq!(titles(schema), ["WrappedProblem", "EXTERNAL", "NEWTYPE"]);
+}
+
+#[test]
+fn retrofit_set_one_of_has_each_type_code() {
+    #[problem_set(documents(RetrofitUnitProblem, RetrofitWrappedProblem))]
+    #[derive(Debug)]
+    enum RetrofitErrors {}
+
+    let responses = responses::<RetrofitErrors>();
+    let schema = &responses["400"]["content"]["application/problem+json"]["schema"];
+    let one_of = schema["oneOf"].as_array().expect("oneOf");
+    let codes: Vec<&str> = one_of
+        .iter()
+        .map(|item| item["properties"]["code"]["enum"][0].as_str().unwrap())
+        .collect();
+    assert_eq!(codes, ["RETROFIT_UNIT", "RETROFIT_WRAPPED"]);
 }
 
 #[test]

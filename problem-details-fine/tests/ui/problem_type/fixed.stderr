@@ -1,0 +1,101 @@
+error: the fixed member `status` collides with a reserved problem details member
+ --> tests/ui/problem_type/fixed.rs:5:95
+  |
+5 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", fixed(/** Doc. */ status: u16 = 404))]
+  |                                                                                               ^^^^^^
+
+error: the fixed member `code` is defined more than once
+ --> tests/ui/problem_type/fixed.rs:8:125
+  |
+8 | #[problem_type(type = "tag:x.test,2025:B", status = NOT_FOUND, title = "X", fixed(/** Doc. */ code: &str = "A", /** Doc. */ "code": &...
+  |                                                                                                                             ^^^^^^
+
+error: the fixed member `id` collides with an extension member
+  --> tests/ui/problem_type/fixed.rs:11:95
+   |
+11 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", fixed(/** Doc. */ id: &str = "A"))]
+   |                                                                                               ^^
+
+error: the fixed member `widgetId` collides with an extension member
+  --> tests/ui/problem_type/fixed.rs:16:95
+   |
+16 | #[problem_type(type = "tag:x.test,2025:D", status = NOT_FOUND, title = "X", fixed(/** Doc. */ widgetId: &str = "A"))]
+   |                                                                                               ^^^^^^^^
+
+error: the fixed member `data` collides with an extension member
+  --> tests/ui/problem_type/fixed.rs:22:110
+   |
+22 | #[problem_type(type = "tag:x.test,2025:E", status = NOT_FOUND, title = "X", wrap = "data", fixed(/** Doc. */ data: &str = "A"))]
+   |                                                                                                              ^^^^
+
+error: the fixed member `kind` collides with an extension member
+  --> tests/ui/problem_type/fixed.rs:27:95
+   |
+27 | #[problem_type(type = "tag:x.test,2025:F", status = NOT_FOUND, title = "X", fixed(/** Doc. */ kind: &str = "A"))]
+   |                                                                                               ^^^^
+
+error: the fixed member `c` collides with an extension member
+  --> tests/ui/problem_type/fixed.rs:33:95
+   |
+33 | #[problem_type(type = "tag:x.test,2025:G", status = NOT_FOUND, title = "X", fixed(/** Doc. */ c: &str = "A"))]
+   |                                                                                               ^
+
+error: the fixed member `error` collides with the `detail_as` member
+  --> tests/ui/problem_type/fixed.rs:39:130
+   |
+39 | ...e = "X", detail = "x", detail_as = "error", fixed(/** Doc. */ error: &str = "A"))]
+   |                                                                  ^^^^^
+
+error: the fixed member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/fixed.rs:47:23
+   |
+47 |     fixed(/** Doc. */ tag: &str = "A"),
+   |                       ^^^
+
+error: the `tag` argument is here
+  --> tests/ui/problem_type/fixed.rs:44:11
+   |
+44 |     tag = "tag:x.test,2025:I",
+   |           ^^^^^^^^^^^^^^^^^^^
+
+error: a fixed member needs a doc comment; it becomes the description in the Openapi schema
+  --> tests/ui/problem_type/fixed.rs:51:83
+   |
+51 | #[problem_type(type = "tag:x.test,2025:J", status = NOT_FOUND, title = "X", fixed(code: &str = "A"))]
+   |                                                                                   ^^^^
+
+error: the value of a fixed member must be a literal
+  --> tests/ui/problem_type/fixed.rs:54:108
+   |
+54 | #[problem_type(type = "tag:x.test,2025:K", status = NOT_FOUND, title = "X", fixed(/** Doc. */ code: &str = CODE))]
+   |                                                                                                            ^^^^
+
+error: expected `=`
+  --> tests/ui/problem_type/fixed.rs:57:106
+   |
+57 | #[problem_type(type = "tag:x.test,2025:L", status = NOT_FOUND, title = "X", fixed(/** Doc. */ code: &str "A"))]
+   |                                                                                                          ^^^
+
+error: expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/problem_type/fixed.rs:60:101
+   |
+60 | #[problem_type(type = "tag:x.test,2025:M", status = NOT_FOUND, title = "X", fixed(/** Doc. */ code: = "A"))]
+   |                                                                                                     ^
+
+error: expected identifier or string literal
+  --> tests/ui/problem_type/fixed.rs:63:95
+   |
+63 | #[problem_type(type = "tag:x.test,2025:N", status = NOT_FOUND, title = "X", fixed(/** Doc. */ 5: &str = "A"))]
+   |                                                                                               ^
+
+error: a fixed member name cannot be empty
+  --> tests/ui/problem_type/fixed.rs:66:95
+   |
+66 | #[problem_type(type = "tag:x.test,2025:O", status = NOT_FOUND, title = "X", fixed(/** Doc. */ "": &str = "A"))]
+   |                                                                                               ^^
+
+error: `fixed` is already set
+  --> tests/ui/problem_type/fixed.rs:69:111
+   |
+69 | #[problem_type(type = "tag:x.test,2025:P", status = NOT_FOUND, title = "X", fixed(/** Doc. */ a: &str = "A"), fixed(/** Doc. */ b: &...
+   |                                                                                                               ^^^^^

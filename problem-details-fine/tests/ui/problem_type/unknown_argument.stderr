@@ -1,4 +1,4 @@
-error: unknown `problem_type` argument; expected one of `type`, `status`, `title`, `detail`, `detail_with`, `tag`, `wrap`, `schema_title`, `payload_schema`, `omit`
+error: unknown `problem_type` argument; expected one of `type`, `status`, `title`, `detail`, `detail_with`, `detail_as`, `fixed`, `tag`, `wrap`, `schema_title`, `payload_schema`, `omit`
  --> tests/ui/problem_type/unknown_argument.rs:3:77
   |
 3 | #[problem_type(type = "tag:x.test,2025:X", status = NOT_FOUND, title = "X", name = "X")]

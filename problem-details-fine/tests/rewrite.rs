@@ -15,7 +15,7 @@ use problem_details_fine::{
 use serde_json::Value;
 use types::{
     ComputedProblem, ExplicitTagProblem, FlatProblem, FlattenedTagProblem, Labels, RawProblem,
-    TagUriOwnTagProblem, TaggedProblem, UnitProblem, WrappedProblem,
+    RetrofitProblem, TagUriOwnTagProblem, TaggedProblem, UnitProblem, WrappedProblem,
 };
 
 /// The type URIs that `on_unmatched` gets.
@@ -61,6 +61,10 @@ fn setup() {
                 RewriteRule::exact("tag:fixtures.test,2025:TAG_URI_OWN_TAG_REMOVED")
                     .type_uri("https://docs.example.com/own-tag-removed")
                     .tag_uri(TagUri::Remove),
+            )
+            .rule(
+                RewriteRule::exact("tag:fixtures.test,2025:FIXED_TAG")
+                    .type_uri("https://docs.example.com/fixed-tag"),
             )
             .rule(
                 RewriteRule::exact("https://rewrite.test/collision-a")
@@ -195,6 +199,41 @@ fn ignore_rule() {
         title: String::new(),
     });
     assert_eq!(raw["type"], "tag:fixtures.test,2025:RAW");
+}
+
+#[test]
+fn rewrite_leaves_retrofit_members() {
+    let retrofit = document(RetrofitProblem { id: "w-1".into() });
+    assert_eq!(retrofit["type"], "tag:example.com,2026:RETROFIT");
+    assert_eq!(retrofit["error"], "widget `w-1` already exists");
+    assert_eq!(retrofit["code"], "RETROFIT");
+    assert_eq!(retrofit["ratio"], 0.1);
+}
+
+#[test]
+fn rewrite_that_adds_a_tag_member_to_a_fixed_tag_member_fails() {
+    #[problem_details_fine::problem_type(
+        type = "tag:fixtures.test,2025:FIXED_TAG",
+        status = BAD_REQUEST,
+        title = "Fixed tag",
+        fixed(
+            /// A legacy member named `tag`.
+            tag: &str = "mine",
+        ),
+    )]
+    #[derive(Debug, Clone)]
+    struct FixedTagProblem;
+
+    setup();
+    for error in [
+        serde_json::to_string(&FixedTagProblem).unwrap_err(),
+        serde_json::to_string(&ProblemDetails::from(FixedTagProblem)).unwrap_err(),
+    ] {
+        assert!(
+            error.to_string().contains("also an extension member `tag`"),
+            "{error}"
+        );
+    }
 }
 
 #[test]

@@ -16,8 +16,9 @@ pub use crate::identity::Resolved;
 #[cfg(feature = "utoipa")]
 pub use crate::openapi::{ProblemEntry, problem_responses, problem_schema};
 pub use crate::problem::{
-    Extensions, Omit, ProblemSetImpl, ProblemTypeImpl, TagField, assert_distinct_members,
-    copy_types, serialize_no_extensions, serialize_problem, serialize_wrapped,
+    Extensions, Fixed, FixedValue, Omit, ProblemSetImpl, ProblemTypeImpl, TagField,
+    assert_distinct_members, copy_types, serialize_no_extensions, serialize_problem,
+    serialize_wrapped,
 };
 
 /// Returns the status code for an integer literal. The macro validates the literal.

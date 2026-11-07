@@ -233,3 +233,109 @@ fn transparent_payload_schema() -> utoipa::openapi::RefOr<utoipa::openapi::schem
 
 #[cfg(not(feature = "utoipa"))]
 fn transparent_payload_schema() {}
+
+/// A problem type with `detail_as` and `fixed`, including an `f32` that is not exact in binary.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT",
+    status = CONFLICT,
+    title = "Retrofit",
+    detail = "widget `{id}` already exists",
+    detail_as = "error",
+    fixed(
+        /// The legacy error code.
+        code: &str = "RETROFIT",
+        /// A ratio.
+        ratio: f32 = 0.1,
+    ),
+)]
+#[derive(Debug, Clone)]
+pub struct RetrofitProblem {
+    pub id: String,
+}
+
+/// An internally tagged enum with `detail_as` and `fixed`, where every variant renders a detail. One variant has
+/// its own `#[problem(detail = ..)]`. The other variant uses the container `detail`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_ENUM",
+    status = BAD_REQUEST,
+    title = "Retrofit enum",
+    detail = "widget `{id}` is invalid",
+    detail_as = "error",
+    fixed(/** The legacy error code. */ code: &str = "RETROFIT_ENUM"),
+)]
+#[derive(Debug, Clone)]
+#[serde(tag = "kind")]
+pub enum RetrofitEnumProblem {
+    #[problem(detail = "widget `{id}` is missing")]
+    Missing {
+        id: String,
+    },
+    Invalid {
+        id: String,
+    },
+}
+
+/// An internally tagged enum with `detail_as` and `fixed`, where one variant has no format string. There is no
+/// container `detail`, so the document of that variant has no `detail_as` member.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_PARTIAL",
+    status = BAD_REQUEST,
+    title = "Retrofit partial",
+    detail_as = "error",
+    fixed(/** The legacy error code. */ code: &str = "RETROFIT_PARTIAL"),
+)]
+#[derive(Debug, Clone)]
+#[serde(tag = "kind")]
+pub enum RetrofitPartialProblem {
+    #[problem(detail = "widget `{id}` is missing")]
+    Missing {
+        id: String,
+    },
+    Other {
+        id: String,
+    },
+}
+
+/// A `wrap` type with `detail_as` and `fixed`. The `detail_as` member and the fixed member are next to the `wrap`
+/// member, not in it.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_WRAPPED",
+    status = BAD_REQUEST,
+    title = "Retrofit wrapped",
+    detail = "widget `{id}`",
+    detail_as = "error",
+    wrap = "data",
+    fixed(/** The legacy error code. */ code: &str = "RETROFIT_WRAPPED"),
+)]
+#[derive(Debug, Clone)]
+pub struct RetrofitWrappedProblem {
+    pub id: String,
+}
+
+/// A problem type with no fields, with `detail_as` and `fixed`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_UNIT",
+    status = BAD_REQUEST,
+    title = "Retrofit unit",
+    detail = "x",
+    detail_as = "message",
+    fixed(/** The legacy error code. */ code: &str = "RETROFIT_UNIT"),
+)]
+#[derive(Debug, Clone)]
+pub struct RetrofitUnitProblem;
+
+/// An adjacently tagged enum with `detail_as` and `fixed`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_ADJACENT",
+    status = BAD_REQUEST,
+    title = "Retrofit adjacent",
+    detail = "an adjacent problem",
+    detail_as = "error",
+    fixed(/** The legacy error code. */ code: &str = "RETROFIT_ADJACENT"),
+)]
+#[derive(Debug, Clone)]
+#[serde(tag = "kind", content = "data")]
+pub enum RetrofitAdjacentProblem {
+    Titled { title: String },
+    Count(u32),
+}

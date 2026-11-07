@@ -7,7 +7,7 @@ use serde_json::{Map, Value};
 use crate::{
     ProblemType,
     identity::{self, Resolved, TypeIdentity},
-    problem::r#type::TagField,
+    problem::r#type::{Fixed, TagField},
 };
 
 /// The error from [`ProblemDetails::try_with_extension`].
@@ -302,16 +302,37 @@ impl ProblemDetails {
     fn record_error(&mut self, error: String) {
         self.error.get_or_insert(error);
     }
+
+    /// Inserts a `detail_as` or fixed member into `extensions`. If a member with that name is already there, it
+    /// records an error instead.
+    ///
+    /// A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. Only this run-time
+    /// check can find that collision.
+    fn insert_retrofit_member(&mut self, definition: &str, name: &'static str, value: Value) {
+        if self.extensions.contains_key(name) {
+            self.record_error(format!(
+                "the problem type `{definition}` writes `{name}` as a retrofit member, but the extension \
+                 members already have a member with that name"
+            ));
+            return;
+        }
+        self.extensions.insert(name.to_owned(), value);
+    }
 }
 
 impl<T: ProblemType> From<T> for ProblemDetails {
     fn from(problem: T) -> Self {
+        let rendered_detail = problem.detail();
+        let (detail, detail_as) = match T::__DETAIL_AS {
+            Some(name) => (None, rendered_detail.map(|detail| (name, detail))),
+            None => (rendered_detail, None),
+        };
         let mut details = Self {
             type_uri: Cow::Borrowed(T::TYPE),
             tag_uri: T::TAG.map(Cow::Borrowed),
             status: T::STATUS,
             title: Cow::Borrowed(T::TITLE),
-            detail: problem.detail(),
+            detail,
             instance: None,
             extensions: Map::new(),
             error: None,
@@ -326,6 +347,12 @@ impl<T: ProblemType> From<T> for ProblemDetails {
             Err(error) => {
                 details.record_error(format!("extension members of `{}`: {error}", T::TYPE))
             }
+        }
+        if let Some((name, detail)) = detail_as {
+            details.insert_retrofit_member(T::__ID, name, Value::String(detail));
+        }
+        for fixed in T::__FIXED {
+            details.insert_retrofit_member(T::__ID, fixed.name, fixed.value.to_json());
         }
         details
     }
@@ -348,6 +375,10 @@ impl Serialize for ProblemDetails {
             title: &self.title,
             detail: self.detail.as_deref(),
             instance: self.instance.as_deref(),
+            retrofit: Retrofit {
+                detail: None,
+                fixed: &[],
+            },
             extensions: &self.extensions,
         }
         .serialize(serializer)
@@ -376,13 +407,22 @@ pub fn serialize_problem<T: ProblemType, S: Serializer>(
             return Err(S::Error::custom(tag_collision(Some(T::__ID))));
         }
     }
+    let rendered_detail = problem.detail();
+    let (detail, retrofit_detail) = match T::__DETAIL_AS {
+        Some(name) => (None, rendered_detail.map(|detail| (name, detail))),
+        None => (rendered_detail, None),
+    };
     Document {
         type_uri: &identity.type_uri,
         tag_uri: tag_member,
         status: T::STATUS.as_u16(),
         title: T::TITLE,
-        detail: problem.detail().as_deref(),
+        detail: detail.as_deref(),
         instance: None,
+        retrofit: Retrofit {
+            detail: retrofit_detail,
+            fixed: T::__FIXED,
+        },
         extensions: ExtensionMembers(problem),
     }
     .serialize(serializer)
@@ -413,7 +453,34 @@ struct Document<'a, E> {
     #[serde(skip_serializing_if = "Option::is_none")]
     instance: Option<&'a str>,
     #[serde(flatten)]
+    retrofit: Retrofit,
+    #[serde(flatten)]
     extensions: E,
+}
+
+/// The `detail_as` and fixed members of a problem type: a map with the `detail_as` entry first, then the fixed
+/// entries in declaration order.
+struct Retrofit {
+    /// The `detail_as` name and the rendered detail. It is `None` if the type has no `detail_as`, or if the rendered
+    /// detail is `None`.
+    detail: Option<(&'static str, String)>,
+    /// The fixed members, in declaration order.
+    fixed: &'static [Fixed],
+}
+
+impl Serialize for Retrofit {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let len = self.fixed.len() + usize::from(self.detail.is_some());
+        let mut map = serializer.serialize_map(Some(len))?;
+        if let Some((name, detail)) = &self.detail {
+            map.serialize_entry(name, detail)?;
+        }
+        for fixed in self.fixed {
+            map.serialize_entry(fixed.name, &fixed.value)?;
+        }
+        map.end()
+    }
 }
 
 struct ExtensionMembers<'a, T>(&'a T);

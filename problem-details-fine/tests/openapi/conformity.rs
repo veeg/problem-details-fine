@@ -3,7 +3,9 @@
 use crate::types::{
     AdjacentProblem, ComputedProblem, ConfiguredProblem, ExplicitTagProblem, ExternalProblem,
     FlatProblem, Location, ManualProblem, NewtypeProblem, RawProblem, ReferencingProblem,
-    TaggedProblem, TransparentProblem, UnitProblem, WrappedProblem,
+    RetrofitAdjacentProblem, RetrofitEnumProblem, RetrofitPartialProblem, RetrofitProblem,
+    RetrofitUnitProblem, RetrofitWrappedProblem, TaggedProblem, TransparentProblem, UnitProblem,
+    WrappedProblem,
 };
 use problem_details_fine::{ProblemDetails, ProblemType};
 use serde_json::{Value, json};
@@ -74,6 +76,31 @@ fn fixtures_conform() {
         r#loop: "l".into(),
         title: String::new(),
     });
+}
+
+/// The `f32` fixed member has the same JSON number in the document and in the schema's `enum`.
+#[test]
+fn f32_fixed_conforms() {
+    assert_conforms(RetrofitProblem { id: "w-1".into() });
+}
+
+/// Each of these types with `detail_as` and `fixed(...)` conforms to its own schema:
+///
+/// - An internally tagged enum where every variant renders a detail.
+/// - An internally tagged enum where a variant has no format string.
+/// - A `wrap` type.
+/// - A type with no fields.
+/// - An adjacently tagged enum.
+#[test]
+fn retrofit_shapes_conform() {
+    assert_conforms(RetrofitEnumProblem::Missing { id: "a".into() });
+    assert_conforms(RetrofitEnumProblem::Invalid { id: "b".into() });
+    assert_conforms(RetrofitPartialProblem::Missing { id: "c".into() });
+    assert_conforms(RetrofitPartialProblem::Other { id: "d".into() });
+    assert_conforms(RetrofitWrappedProblem { id: "w".into() });
+    assert_conforms(RetrofitUnitProblem);
+    assert_conforms(RetrofitAdjacentProblem::Titled { title: "t".into() });
+    assert_conforms(RetrofitAdjacentProblem::Count(1));
 }
 
 #[test]

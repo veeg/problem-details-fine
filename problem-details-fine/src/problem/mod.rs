@@ -10,4 +10,4 @@ pub use details::{ExtensionError, ProblemDetails};
 pub use details::{serialize_no_extensions, serialize_problem, serialize_wrapped};
 pub use set::{ProblemSet, ProblemSetImpl};
 pub use set::{assert_distinct_members, copy_types};
-pub use r#type::{Extensions, Omit, ProblemType, ProblemTypeImpl, TagField};
+pub use r#type::{Extensions, Fixed, FixedValue, Omit, ProblemType, ProblemTypeImpl, TagField};

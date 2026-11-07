@@ -5,7 +5,11 @@ use syn::{
     spanned::Spanned,
 };
 
-use crate::{Errors, attrs, detail, status, uri};
+use crate::{
+    Errors, attrs, detail,
+    fixed::{self, FixedEntry},
+    status, uri,
+};
 
 /// The members that RFC 9457 and this crate define. An extension member cannot use these names.
 const RESERVED: &[&str] = &["type", "status", "title", "detail", "instance"];
@@ -17,6 +21,8 @@ struct Args {
     title: Option<LitStr>,
     detail: Option<LitStr>,
     detail_with: Option<Path>,
+    /// The extension member that holds the rendered detail instead of `detail`.
+    detail_as: Option<LitStr>,
     tag_uri: Option<LitStr>,
     wrap: Option<LitStr>,
     schema_title: Option<LitStr>,
@@ -25,6 +31,8 @@ struct Args {
     omit_detail: Option<Ident>,
     /// The `instance` in `omit(..)`.
     omit_instance: Option<Ident>,
+    /// The entries of `fixed(..)`.
+    fixed: Option<Vec<FixedEntry>>,
 }
 
 impl Args {
@@ -43,6 +51,11 @@ impl Args {
                 args.detail = Some(meta.value()?.parse()?);
             } else if path.is_ident("detail_with") {
                 args.detail_with = Some(meta.value()?.parse()?);
+            } else if path.is_ident("detail_as") {
+                if args.detail_as.is_some() {
+                    return Err(meta.error("`detail_as` is already set"));
+                }
+                args.detail_as = Some(meta.value()?.parse()?);
             } else if path.is_ident("tag") {
                 args.tag_uri = Some(meta.value()?.parse()?);
             } else if path.is_ident("wrap") {
@@ -51,6 +64,13 @@ impl Args {
                 args.schema_title = Some(meta.value()?.parse()?);
             } else if path.is_ident("payload_schema") {
                 args.payload_schema = Some(meta.value()?.parse()?);
+            } else if path.is_ident("fixed") {
+                if args.fixed.is_some() {
+                    return Err(meta.error("`fixed` is already set"));
+                }
+                let content;
+                syn::parenthesized!(content in meta.input);
+                args.fixed = Some(fixed::parse(&content)?);
             } else if path.is_ident("omit") {
                 meta.parse_nested_meta(|member| {
                     let slot = if member.path.is_ident("detail") {
@@ -70,7 +90,7 @@ impl Args {
             } else {
                 return Err(meta.error(
                     "unknown `problem_type` argument; expected one of `type`, `status`, `title`, `detail`, \
-                     `detail_with`, `tag`, `wrap`, `schema_title`, `payload_schema`, `omit`",
+                     `detail_with`, `detail_as`, `fixed`, `tag`, `wrap`, `schema_title`, `payload_schema`, `omit`",
                 ));
             }
             Ok(())
@@ -183,11 +203,11 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
             "`detail` and `detail_with` are mutually exclusive",
         ));
     }
-    let detail_body = match detail_body(&args, &mut input) {
-        Ok(body) => body,
+    let (detail_body, always_detail) = match detail_body(&args, &mut input) {
+        Ok(detail) => detail,
         Err(error) => {
             errors.push(error);
-            quote!(::core::option::Option::None)
+            (quote!(::core::option::Option::None), false)
         }
     };
 
@@ -212,7 +232,23 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
     if let Err(error) = check_members(&members, &layout, args.tag_uri.as_ref()) {
         errors.push(error);
     }
-    let tag_field = tag_field(&members);
+    let fixed_entries = args.fixed.as_deref().unwrap_or_default();
+    if let Err(error) = check_retrofit(
+        &members,
+        args.detail_as.as_ref(),
+        fixed_entries,
+        args.tag_uri.as_ref(),
+    ) {
+        errors.push(error);
+    }
+    let mut fixed = Vec::new();
+    for entry in fixed_entries {
+        match fixed::expand(entry) {
+            Ok(tokens) => fixed.push(tokens),
+            Err(error) => errors.push(error),
+        }
+    }
+    let tag_field = tag_field(&members, args.detail_as.as_ref(), fixed_entries);
 
     errors.finish()?;
 
@@ -306,6 +342,12 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
     let ident_str = ident.to_string();
     let omit_detail = args.omit_detail.is_some();
     let omit_instance = args.omit_instance.is_some();
+    let open_members = members.flattened;
+    let detail_as = match &args.detail_as {
+        Some(name) => quote!(::core::option::Option::Some(#name)),
+        None => quote!(::core::option::Option::None),
+    };
+    let detail_as_required = args.detail_as.is_some() && always_detail;
 
     Ok(quote! {
         #[derive(::problem_details_fine::__private::__ProblemHelpers)]
@@ -335,6 +377,11 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
                     detail: #omit_detail,
                     instance: #omit_instance,
                 };
+                const __DETAIL_AS: ::core::option::Option<&'static str> = #detail_as;
+                const __DETAIL_AS_REQUIRED: bool = #detail_as_required;
+                #[allow(clippy::unnecessary_cast)]
+                const __FIXED: &'static [::problem_details_fine::__private::Fixed] = &[#(#fixed),*];
+                const __OPEN_MEMBERS: bool = #open_members;
                 const __ID: &'static str = ::core::concat!(::core::module_path!(), "::", #ident_str);
 
                 fn __serialize_extensions<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
@@ -404,7 +451,9 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
 }
 
 /// Makes the body of `ProblemType::detail`. It removes each `#[problem(..)]` attribute from the item.
-fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<TokenStream> {
+///
+/// Also returns `true` if every value of the type has a detail format string, so the detail is always present.
+fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<(TokenStream, bool)> {
     let mut errors = Errors::default();
 
     // Remove the helper attributes first. Then no helper attribute stays in the item, even if a check fails.
@@ -424,6 +473,25 @@ fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<TokenStream>
             }
         }
         Data::Union(_) => {}
+    }
+
+    if let Some(detail_as) = &args.detail_as {
+        let has_source = args.detail.is_some()
+            || args.detail_with.is_some()
+            || variant_details.iter().any(Option::is_some);
+        if !has_source {
+            errors.push(syn::Error::new_spanned(
+                detail_as,
+                "`detail_as` requires a detail source: `detail`, `detail_with` or `#[problem(detail = ..)]` on a \
+                 variant",
+            ));
+        }
+        if let Some(omit) = &args.omit_detail {
+            errors.push(syn::Error::new_spanned(
+                omit,
+                "`detail_as` already leaves `detail` out of the schema; remove `omit(detail)`",
+            ));
+        }
     }
 
     // A type that sets `detail` cannot leave it out of the schema.
@@ -451,8 +519,14 @@ fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<TokenStream>
             ));
         }
         errors.finish()?;
-        return Ok(quote!(#path(self)));
+        return Ok((quote!(#path(self)), false));
     }
+
+    let always_detail = match &input.data {
+        Data::Struct(_) => args.detail.is_some(),
+        Data::Enum(_) => args.detail.is_some() || variant_details.iter().all(Option::is_some),
+        Data::Union(_) => false,
+    };
 
     let body = match &input.data {
         Data::Struct(data) => match &args.detail {
@@ -501,7 +575,7 @@ fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<TokenStream>
         Data::Union(_) => quote!(::core::option::Option::None),
     };
     errors.finish()?;
-    Ok(body)
+    Ok((body, always_detail))
 }
 
 /// The paths in `#[derive(..)]` that name `Serialize`, for example `Serialize` or `serde::Serialize`. The compiler
@@ -752,9 +826,97 @@ fn check_members(
     errors.finish()
 }
 
-/// The `__TAG_FIELD` value: whether the extension members include a `tag` member.
-fn tag_field(members: &Members) -> TokenStream {
-    if members.named.iter().any(|(name, _)| name == "tag") {
+/// Rejects these names of a `detail_as` or fixed member:
+///
+/// - An empty `detail_as` name.
+/// - A reserved name.
+/// - A fixed member name that is defined more than once, or that is the `detail_as` name.
+/// - The name of an extension member at the top level of the document.
+/// - `tag`, if the `tag` argument adds the `tag` member of the document.
+///
+/// The `detail_as` and fixed members are at the top level even with `wrap`.
+fn check_retrofit(
+    members: &Members,
+    detail_as: Option<&LitStr>,
+    fixed: &[FixedEntry],
+    tag_argument: Option<&LitStr>,
+) -> syn::Result<()> {
+    let mut errors = Errors::default();
+    // The members that `detail_as` and `fixed(...)` add. Each one has the label that an error message uses for it.
+    let mut retrofit: Vec<(String, String, Span)> = Vec::new();
+    if let Some(detail_as) = detail_as {
+        let name = detail_as.value();
+        if name.is_empty() {
+            errors.push(syn::Error::new_spanned(
+                detail_as,
+                "`detail_as` cannot be empty",
+            ));
+        } else if RESERVED.contains(&name.as_str()) {
+            errors.push(syn::Error::new_spanned(
+                detail_as,
+                format!("`detail_as = \"{name}\"` collides with a reserved problem details member"),
+            ));
+        } else {
+            retrofit.push((
+                format!("the `detail_as` member `{name}`"),
+                name,
+                detail_as.span(),
+            ));
+        }
+    }
+    for entry in fixed {
+        let name = &entry.name;
+        let label = format!("the fixed member `{name}`");
+        if RESERVED.contains(&name.as_str()) {
+            errors.push(syn::Error::new(
+                entry.name_span,
+                format!("{label} collides with a reserved problem details member"),
+            ));
+            continue;
+        }
+        if retrofit.iter().any(|(_, other, _)| other == name) {
+            let message = if detail_as.is_some_and(|detail_as| detail_as.value() == *name) {
+                format!("{label} collides with the `detail_as` member")
+            } else {
+                format!("{label} is defined more than once")
+            };
+            errors.push(syn::Error::new(entry.name_span, message));
+            continue;
+        }
+        retrofit.push((label, name.clone(), entry.name_span));
+    }
+
+    for (label, name, span) in &retrofit {
+        if members.named.iter().any(|(member, _)| member == name) {
+            errors.push(syn::Error::new(
+                *span,
+                format!("{label} collides with an extension member"),
+            ));
+        }
+        if name == "tag"
+            && let Some(tag_argument) = tag_argument
+        {
+            let mut error = syn::Error::new(
+                *span,
+                format!("{label} collides with the `tag` member that the `tag` argument adds"),
+            );
+            error.combine(syn::Error::new_spanned(
+                tag_argument,
+                "the `tag` argument is here",
+            ));
+            errors.push(error);
+        }
+    }
+    errors.finish()
+}
+
+/// The `__TAG_FIELD` value: whether the extension members, including the `detail_as` and fixed members, include a
+/// `tag` member.
+fn tag_field(members: &Members, detail_as: Option<&LitStr>, fixed: &[FixedEntry]) -> TokenStream {
+    let named_tag = members.named.iter().any(|(name, _)| name == "tag")
+        || detail_as.is_some_and(|detail_as| detail_as.value() == "tag")
+        || fixed.iter().any(|entry| entry.name == "tag");
+    if named_tag {
         quote!(::problem_details_fine::__private::TagField::Yes)
     } else if members.flattened {
         quote!(::problem_details_fine::__private::TagField::Unknown)

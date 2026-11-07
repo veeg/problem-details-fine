@@ -1,0 +1,65 @@
+error: `detail_as` requires a detail source: `detail`, `detail_with` or `#[problem(detail = ..)]` on a variant
+ --> tests/ui/problem_type/detail_as.rs:3:89
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", detail_as = "error")]
+  |                                                                                         ^^^^^^^
+
+error: `detail_as` already leaves `detail` out of the schema; remove `omit(detail)`
+ --> tests/ui/problem_type/detail_as.rs:6:117
+  |
+6 | #[problem_type(type = "tag:x.test,2025:B", status = NOT_FOUND, title = "X", detail = "x", detail_as = "error", omit(detail))]
+  |                                                                                                                     ^^^^^^
+
+error: `omit(detail)` cannot be combined with `detail`
+ --> tests/ui/problem_type/detail_as.rs:6:86
+  |
+6 | #[problem_type(type = "tag:x.test,2025:B", status = NOT_FOUND, title = "X", detail = "x", detail_as = "error", omit(detail))]
+  |                                                                                      ^^^
+
+error: `detail_as = "title"` collides with a reserved problem details member
+ --> tests/ui/problem_type/detail_as.rs:9:103
+  |
+9 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", detail = "x", detail_as = "title")]
+  |                                                                                                       ^^^^^^^
+
+error: the `detail_as` member `id` collides with an extension member
+  --> tests/ui/problem_type/detail_as.rs:12:103
+   |
+12 | #[problem_type(type = "tag:x.test,2025:D", status = NOT_FOUND, title = "X", detail = "x", detail_as = "id")]
+   |                                                                                                       ^^^^
+
+error: the `detail_as` member `kind` collides with an extension member
+  --> tests/ui/problem_type/detail_as.rs:17:103
+   |
+17 | #[problem_type(type = "tag:x.test,2025:E", status = NOT_FOUND, title = "X", detail = "x", detail_as = "kind")]
+   |                                                                                                       ^^^^^^
+
+error: the `detail_as` member `data` collides with an extension member
+  --> tests/ui/problem_type/detail_as.rs:23:103
+   |
+23 | #[problem_type(type = "tag:x.test,2025:F", status = NOT_FOUND, title = "X", detail = "x", detail_as = "data", wrap = "data")]
+   |                                                                                                       ^^^^^^
+
+error: the `detail_as` member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/detail_as.rs:34:17
+   |
+34 |     detail_as = "tag",
+   |                 ^^^^^
+
+error: the `tag` argument is here
+  --> tests/ui/problem_type/detail_as.rs:30:11
+   |
+30 |     tag = "tag:x.test,2025:G",
+   |           ^^^^^^^^^^^^^^^^^^^
+
+error: `detail_as` cannot be empty
+  --> tests/ui/problem_type/detail_as.rs:38:103
+   |
+38 | #[problem_type(type = "tag:x.test,2025:H", status = NOT_FOUND, title = "X", detail = "x", detail_as = "")]
+   |                                                                                                       ^^
+
+error: `detail_as` is already set
+  --> tests/ui/problem_type/detail_as.rs:41:108
+   |
+41 | #[problem_type(type = "tag:x.test,2025:I", status = NOT_FOUND, title = "X", detail = "x", detail_as = "a", detail_as = "b")]
+   |                                                                                                            ^^^^^^^^^

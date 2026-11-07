@@ -1,0 +1,51 @@
+error: unsupported fixed member type; use `&str`, `bool`, an integer type, `f32` or `f64`
+  --> tests/ui/problem_type/fixed_types.rs:11:17
+   |
+11 |         letter: char = 'a',
+   |                 ^^^^
+
+error: unsupported fixed member type; use `&str`, `bool`, an integer type, `f32` or `f64`
+  --> tests/ui/problem_type/fixed_types.rs:13:16
+   |
+13 |         owned: String = "a",
+   |                ^^^^^^
+
+error: unsupported fixed member type; use `&str`, `bool`, an integer type, `f32` or `f64`
+  --> tests/ui/problem_type/fixed_types.rs:15:17
+   |
+15 |         custom: Code = 1,
+   |                 ^^^^
+
+error[E0308]: mismatched types
+  --> tests/ui/problem_type/fixed_types.rs:26:22
+   |
+26 |         code: &str = 5,
+   |               ----   ^ expected `&str`, found integer
+   |               |
+   |               expected because of the type of the constant
+
+error[E0600]: cannot apply unary operator `-` to type `u8`
+  --> tests/ui/problem_type/fixed_types.rs:28:17
+   |
+28 |         n: u8 = -1,
+   |                 ^^ cannot apply unary operator `-`
+   |
+   = note: unsigned values cannot be negated
+help: you may have meant the maximum value of `u8`
+   |
+28 -         n: u8 = -1,
+28 +         n: u8 = u8::MAX,
+   |
+
+error[E0308]: mismatched types
+  --> tests/ui/problem_type/fixed_types.rs:30:18
+   |
+30 |         x: f64 = 1,
+   |            ---   ^ expected `f64`, found integer
+   |            |
+   |            expected because of the type of the constant
+   |
+help: use a float literal
+   |
+30 |         x: f64 = 1.0,
+   |                   ++

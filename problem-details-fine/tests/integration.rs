@@ -20,6 +20,8 @@ mod openapi;
 mod problem_set;
 #[path = "lib/problem_type.rs"]
 mod problem_type;
+#[path = "lib/retrofit.rs"]
+mod retrofit;
 #[cfg(feature = "rewrite")]
 #[path = "lib/rewrite.rs"]
 mod rewrite;

@@ -14,7 +14,7 @@ use utoipa::{
 use crate::{
     MEDIA_TYPE, ProblemSet, ProblemType,
     identity::TypeIdentity,
-    problem::{Extensions, Omit, TagField, tag_collision},
+    problem::{Extensions, FixedValue, TagField, tag_collision},
 };
 
 /// One problem type in a [`ProblemSet`], for the Openapi responses.
@@ -113,7 +113,7 @@ pub fn problem_schema<T: ProblemType>(
     definitions: Vec<(String, RefOr<Schema>)>,
 ) -> RefOr<Schema> {
     let resolved = &T::__resolved().0;
-    let base = base_schema(resolved, T::STATUS, T::TITLE, T::SCHEMA_TITLE, T::__OMIT);
+    let base = base_schema::<T>(resolved);
 
     let payload = payload.map(|mut payload| {
         let definitions: BTreeMap<_, _> = definitions.into_iter().collect();
@@ -154,18 +154,15 @@ pub fn problem_schema<T: ProblemType>(
     }
 }
 
-fn base_schema(
-    resolved: &TypeIdentity<'_>,
-    status: StatusCode,
-    title: &str,
-    schema_title: &str,
-    omit: Omit,
-) -> ObjectBuilder {
+fn base_schema<T: ProblemType>(resolved: &TypeIdentity<'_>) -> ObjectBuilder {
+    let omit = T::__OMIT;
     let string = || ObjectBuilder::new().schema_type(SchemaType::Type(Type::String));
+    let detail_description =
+        "A human-readable explanation specific to this occurrence of the problem.";
 
     let builder = ObjectBuilder::new()
         .schema_type(SchemaType::Type(Type::Object))
-        .title(Some(schema_title))
+        .title(Some(T::SCHEMA_TITLE))
         .property(
             "type",
             string()
@@ -192,29 +189,31 @@ fn base_schema(
             ObjectBuilder::new()
                 .schema_type(SchemaType::Type(Type::Integer))
                 .description(Some("The HTTP status code of the problem."))
-                .enum_values(Some([status.as_u16()])),
+                .enum_values(Some([T::STATUS.as_u16()])),
         )
         .required("status")
         .property(
             "title",
             string()
                 .description(Some("A short, human-readable summary of the problem type."))
-                .examples([title]),
+                .examples([T::TITLE]),
         )
         .required("title");
 
-    let builder = if omit.detail {
-        builder
-    } else {
-        builder.property(
-            "detail",
-            string().description(Some(
-                "A human-readable explanation specific to this occurrence of the problem.",
-            )),
-        )
+    let builder = match T::__DETAIL_AS {
+        Some(name) => {
+            let builder = builder.property(name, string().description(Some(detail_description)));
+            if T::__DETAIL_AS_REQUIRED {
+                builder.required(name)
+            } else {
+                builder
+            }
+        }
+        None if omit.detail => builder,
+        None => builder.property("detail", string().description(Some(detail_description))),
     };
 
-    if omit.instance {
+    let builder = if omit.instance {
         builder
     } else {
         builder.property(
@@ -225,7 +224,21 @@ fn base_schema(
                     "A URI reference that identifies this occurrence of the problem.",
                 )),
         )
-    }
+    };
+
+    T::__FIXED.iter().fold(builder, |builder, fixed| {
+        let schema_type = match fixed.value {
+            FixedValue::Str(_) => Type::String,
+            FixedValue::Bool(_) => Type::Boolean,
+            FixedValue::I64(_) | FixedValue::U64(_) => Type::Integer,
+            FixedValue::F32(_) | FixedValue::F64(_) => Type::Number,
+        };
+        let property = ObjectBuilder::new()
+            .schema_type(SchemaType::Type(schema_type))
+            .description(Some(fixed.description))
+            .enum_values(Some([fixed.value.to_json()]));
+        builder.property(fixed.name, property).required(fixed.name)
+    })
 }
 
 /// Returns `true` if the schema, or an `allOf` item of it, has a `tag` property.
