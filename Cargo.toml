@@ -15,4 +15,5 @@ rust-version = "1.88"
 version = "0.1.0"
 
 [workspace.dependencies]
-problem-details-fine-macros = { path = "problem-details-fine-macros", version = "0.1.0" }
+# The macros and the main crate are released as an exact pair.
+problem-details-fine-macros = { path = "problem-details-fine-macros", version = "=0.1.0" }
