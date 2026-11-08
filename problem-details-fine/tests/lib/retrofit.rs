@@ -452,3 +452,184 @@ fn fixed_value_through_macro_rules_and_parens() {
     assert_eq!(value["code"], json!(-5));
     assert_eq!(value["paren"], json!(-1));
 }
+
+/// `detail_duplicate` with a doc comment: the document has the detail in `detail` and in `message`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:DUPLICATED",
+    status = CONFLICT,
+    title = "Duplicated",
+    detail = "widget `{id}` already exists",
+    detail_duplicate(
+        /// The legacy error message. It repeats `detail`.
+        message
+    ),
+    fixed(/** The legacy error code. */ code: &str = "DUPLICATED"),
+)]
+#[derive(Debug, Clone)]
+struct Duplicated {
+    id: String,
+}
+
+/// `detail_duplicate` without a doc comment, on an enum where a variant has no detail.
+#[problem_type(
+    type = "tag:fixtures.test,2025:DUPLICATED_ENUM",
+    status = BAD_REQUEST,
+    title = "Duplicated enum",
+    detail_duplicate = "error-message",
+)]
+#[derive(Debug, Clone)]
+#[serde(tag = "kind")]
+enum DuplicatedEnum {
+    #[problem(detail = "widget `{id}` is missing")]
+    Missing {
+        id: String,
+    },
+    Other {
+        id: String,
+    },
+}
+
+/// `detail_duplicate` with `wrap`: the member is next to the `wrap` member, not in it.
+#[problem_type(
+    type = "tag:fixtures.test,2025:DUPLICATED_WRAPPED",
+    status = BAD_REQUEST,
+    title = "Duplicated wrapped",
+    detail = "widget `{id}`",
+    detail_duplicate(r#message),
+    wrap = "data",
+)]
+#[derive(Debug, Clone)]
+struct DuplicatedWrapped {
+    id: String,
+}
+
+#[test]
+fn detail_duplicate_repeats_detail() {
+    let value = serde_json::to_value(Duplicated { id: "w-1".into() }).unwrap();
+    assert_eq!(
+        serde_json::to_string(&value).unwrap(),
+        serde_json::to_string(&json!({
+            "type": "tag:fixtures.test,2025:DUPLICATED",
+            "status": 409,
+            "title": "Duplicated",
+            "detail": "widget `w-1` already exists",
+            "message": "widget `w-1` already exists",
+            "code": "DUPLICATED",
+            "id": "w-1",
+        }))
+        .unwrap()
+    );
+}
+
+#[test]
+fn detail_duplicate_member_order() {
+    let text = serde_json::to_string(&Duplicated { id: "w-1".into() }).unwrap();
+    let position = |key: &str| text.find(&format!("\"{key}\":")).unwrap();
+    assert!(position("detail") < position("message"));
+    assert!(position("message") < position("code"));
+    assert!(position("code") < position("id"));
+}
+
+#[test]
+fn detail_duplicate_through_problem_details_from() {
+    let details = ProblemDetails::from(Duplicated { id: "w-1".into() });
+    assert_eq!(details.detail(), Some("widget `w-1` already exists"));
+    assert_eq!(
+        details.extensions()["message"],
+        json!("widget `w-1` already exists")
+    );
+    let value = serde_json::to_value(&details).unwrap();
+    assert_eq!(value["detail"], value["message"]);
+}
+
+#[test]
+fn detail_duplicate_enum_variants() {
+    let missing = serde_json::to_value(DuplicatedEnum::Missing { id: "a".into() }).unwrap();
+    assert_eq!(missing["detail"], json!("widget `a` is missing"));
+    assert_eq!(missing["error-message"], json!("widget `a` is missing"));
+
+    let other = serde_json::to_value(DuplicatedEnum::Other { id: "b".into() }).unwrap();
+    assert_eq!(other.get("detail"), None);
+    assert_eq!(other.get("error-message"), None);
+}
+
+#[test]
+fn detail_duplicate_with_wrap_is_top_level() {
+    let value = serde_json::to_value(DuplicatedWrapped { id: "w".into() }).unwrap();
+    assert_eq!(value["message"], json!("widget `w`"));
+    assert_eq!(value["data"], json!({ "id": "w" }));
+}
+
+#[cfg(feature = "utoipa")]
+#[test]
+fn detail_duplicate_schema() {
+    use utoipa::PartialSchema;
+
+    let schema = serde_json::to_value(Duplicated::schema()).unwrap();
+    assert_eq!(
+        schema["properties"]["message"],
+        json!({
+            "type": "string",
+            "description": "The legacy error message. It repeats `detail`.",
+        })
+    );
+    assert!(schema["properties"].get("detail").is_some());
+    assert!(
+        schema["required"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("message"))
+    );
+
+    // Without a doc comment, the description is the one of `detail`. A variant without a detail makes the member
+    // optional.
+    let schema = serde_json::to_value(DuplicatedEnum::schema()).unwrap();
+    let parts = match schema.get("allOf") {
+        Some(serde_json::Value::Array(items)) => items.clone(),
+        _ => vec![schema],
+    };
+    let base = &parts[0];
+    assert_eq!(
+        base["properties"]["error-message"]["description"],
+        base["properties"]["detail"]["description"]
+    );
+    assert!(parts.iter().all(|part| {
+        part["required"]
+            .as_array()
+            .is_none_or(|required| !required.contains(&json!("error-message")))
+    }));
+}
+
+/// A key in the flattened `extra` can collide with the `detail_duplicate` member `message`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:FLATTENED_DUPLICATE",
+    status = BAD_REQUEST,
+    title = "Flattened duplicate",
+    detail = "x",
+    detail_duplicate = "message",
+)]
+#[derive(Debug, Clone)]
+struct FlattenedDuplicate {
+    #[serde(flatten)]
+    extra: BTreeMap<String, String>,
+}
+
+#[test]
+fn flattened_detail_duplicate_collision_fails() {
+    let extra = BTreeMap::from([("message".to_owned(), "Z".to_owned())]);
+    let error = serde_json::to_string(&FlattenedDuplicate {
+        extra: extra.clone(),
+    })
+    .unwrap_err();
+    assert!(
+        error.to_string().contains("also writes `message`"),
+        "{error}"
+    );
+
+    let details = ProblemDetails::from(FlattenedDuplicate { extra });
+    let error = serde_json::to_string(&details).unwrap_err();
+    assert!(
+        error.to_string().contains("also writes `message`"),
+        "{error}"
+    );
+}

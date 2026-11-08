@@ -339,3 +339,35 @@ pub enum RetrofitAdjacentProblem {
     Titled { title: String },
     Count(u32),
 }
+
+/// A problem type with `detail_duplicate` and a doc comment. The detail is in `detail` and in `message`.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_DUPLICATE",
+    status = CONFLICT,
+    title = "Retrofit duplicate",
+    detail = "widget `{id}` already exists",
+    detail_duplicate(/** The legacy error message. */ message),
+)]
+#[derive(Debug, Clone)]
+pub struct RetrofitDuplicateProblem {
+    pub id: String,
+}
+
+/// An internally tagged enum with `detail_duplicate`, where one variant has no format string.
+#[problem_type(
+    type = "tag:fixtures.test,2025:RETROFIT_DUPLICATE_PARTIAL",
+    status = BAD_REQUEST,
+    title = "Retrofit duplicate partial",
+    detail_duplicate = "message",
+)]
+#[derive(Debug, Clone)]
+#[serde(tag = "kind")]
+pub enum RetrofitDuplicatePartialProblem {
+    #[problem(detail = "widget `{id}` is missing")]
+    Missing {
+        id: String,
+    },
+    Other {
+        id: String,
+    },
+}

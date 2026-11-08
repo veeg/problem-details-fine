@@ -32,25 +32,14 @@ pub(crate) fn parse(input: ParseStream) -> syn::Result<Vec<FixedEntry>> {
 }
 
 fn parse_entry(input: ParseStream) -> syn::Result<FixedEntry> {
-    let doc = doc(&input.call(Attribute::parse_outer)?)?;
-    let lookahead = input.lookahead1();
-    let (name, name_span) = if lookahead.peek(Ident) {
-        let ident: Ident = input.parse()?;
-        let name = ident.to_string();
-        let name = name.strip_prefix("r#").map(str::to_owned).unwrap_or(name);
-        (name, ident.span())
-    } else if lookahead.peek(LitStr) {
-        let lit: LitStr = input.parse()?;
-        if lit.value().is_empty() {
-            return Err(syn::Error::new(
-                lit.span(),
-                "a fixed member name cannot be empty",
-            ));
-        }
-        (lit.value(), lit.span())
-    } else {
-        return Err(lookahead.error());
-    };
+    let doc = doc(&input.call(Attribute::parse_outer)?, "a fixed member")?;
+    let (name, name_span) = name(input)?;
+    if name.is_empty() {
+        return Err(syn::Error::new(
+            name_span,
+            "a fixed member name cannot be empty",
+        ));
+    }
     input.parse::<Token![:]>()?;
     let ty = input.parse()?;
     input.parse::<Token![=]>()?;
@@ -64,15 +53,32 @@ fn parse_entry(input: ParseStream) -> syn::Result<FixedEntry> {
     })
 }
 
+/// Parses a member name: a Rust identifier, or a string literal. The name of a raw identifier has no `r#`. The
+/// caller rejects an empty name.
+pub(crate) fn name(input: ParseStream) -> syn::Result<(String, Span)> {
+    let lookahead = input.lookahead1();
+    if lookahead.peek(Ident) {
+        let ident: Ident = input.parse()?;
+        let name = ident.to_string();
+        let name = name.strip_prefix("r#").map(str::to_owned).unwrap_or(name);
+        Ok((name, ident.span()))
+    } else if lookahead.peek(LitStr) {
+        let lit: LitStr = input.parse()?;
+        Ok((lit.value(), lit.span()))
+    } else {
+        Err(lookahead.error())
+    }
+}
+
 /// The text of the doc comment: the `doc` attribute lines, each with one leading space removed, joined with `\n`
-/// and trimmed.
-fn doc(attrs: &[Attribute]) -> syn::Result<String> {
+/// and trimmed. `member` names the member in error messages, for example `a fixed member`.
+pub(crate) fn doc(attrs: &[Attribute], member: &str) -> syn::Result<String> {
     let mut lines = Vec::new();
     for attr in attrs {
         if !attr.path().is_ident("doc") {
             return Err(syn::Error::new_spanned(
                 attr,
-                "a fixed member accepts only doc comments",
+                format!("{member} accepts only doc comments"),
             ));
         }
         let value = &attr.meta.require_name_value()?.value;
@@ -83,7 +89,7 @@ fn doc(attrs: &[Attribute]) -> syn::Result<String> {
         else {
             return Err(syn::Error::new_spanned(
                 value,
-                "the doc comment of a fixed member must be a string literal",
+                format!("the doc comment of {member} must be a string literal"),
             ));
         };
         let line = line.value();

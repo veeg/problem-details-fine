@@ -99,6 +99,16 @@ pub struct Fixed {
     pub value: FixedValue,
 }
 
+/// The `detail_duplicate` member of a problem type: an extension member that repeats the rendered detail.
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DetailDuplicate {
+    /// The member name, written exactly as given.
+    pub name: &'static str,
+    /// The doc comment, used as the schema description. It is `None` if the definition has no doc comment.
+    pub description: Option<&'static str>,
+}
+
 /// The definition of one problem type.
 ///
 /// The value of a problem type holds the extension members of its problem details document. Its `Serialize`
@@ -135,7 +145,8 @@ pub trait ProblemType: Serialize + ProblemTypeImpl + 'static {
     /// An explanation of this occurrence of the problem, for a human reader.
     ///
     /// With `detail_as`, the document has this value in the `detail_as` member instead of `detail`. This method
-    /// still returns the value. A caller can use it to log the problem.
+    /// still returns the value. A caller can use it to log the problem. With `detail_duplicate`, the document also
+    /// has this value in the `detail_duplicate` member.
     fn detail(&self) -> Option<String>;
 }
 
@@ -161,8 +172,12 @@ pub trait ProblemTypeImpl {
     /// document has a standard `detail` member instead.
     const __DETAIL_AS: Option<&'static str>;
 
-    /// Whether the schema marks the `__DETAIL_AS` member required.
-    const __DETAIL_AS_REQUIRED: bool;
+    /// The extension member that repeats the rendered detail, from `detail_duplicate`.
+    const __DETAIL_DUPLICATE: Option<DetailDuplicate>;
+
+    /// Whether each value of the type renders a detail. The schema then marks the `__DETAIL_AS` and
+    /// `__DETAIL_DUPLICATE` members required.
+    const __DETAIL_ALWAYS: bool;
 
     /// The `fixed(...)` members, in declaration order.
     const __FIXED: &'static [Fixed];

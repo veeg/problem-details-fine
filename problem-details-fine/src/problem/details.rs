@@ -303,7 +303,7 @@ impl ProblemDetails {
         self.error.get_or_insert(error);
     }
 
-    /// Inserts a `detail_as` or fixed member into `extensions`. If a member with that name is already there, it
+    /// Inserts a `detail_as`, `detail_duplicate` or fixed member into `extensions`. If a member with that name is already there, it
     /// records an error instead.
     ///
     /// A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. Only this run-time
@@ -319,11 +319,7 @@ impl ProblemDetails {
 
 impl<T: ProblemType> From<T> for ProblemDetails {
     fn from(problem: T) -> Self {
-        let rendered_detail = problem.detail();
-        let (detail, detail_as) = match T::__DETAIL_AS {
-            Some(name) => (None, rendered_detail.map(|detail| (name, detail))),
-            None => (rendered_detail, None),
-        };
+        let (detail, detail_as, duplicate) = split_detail::<T>(problem.detail());
         let mut details = Self {
             type_uri: Cow::Borrowed(T::TYPE),
             tag_uri: T::TAG.map(Cow::Borrowed),
@@ -346,6 +342,9 @@ impl<T: ProblemType> From<T> for ProblemDetails {
             }
         }
         if let Some((name, detail)) = detail_as {
+            details.insert_retrofit_member(T::__ID, name, Value::String(detail));
+        }
+        if let Some((name, detail)) = duplicate {
             details.insert_retrofit_member(T::__ID, name, Value::String(detail));
         }
         for fixed in T::__FIXED {
@@ -374,6 +373,7 @@ impl Serialize for ProblemDetails {
             instance: self.instance.as_deref(),
             retrofit: Retrofit {
                 detail: None,
+                duplicate: None,
                 fixed: &[],
             },
             extensions: &self.extensions,
@@ -393,17 +393,14 @@ pub fn serialize_problem<T: ProblemType, S: Serializer>(
     if tag_member.is_some() && T::__TAG_FIELD == TagField::Yes {
         return Err(S::Error::custom(tag_collision(Some(T::__ID))));
     }
-    let rendered_detail = problem.detail();
-    let (detail, retrofit_detail) = match T::__DETAIL_AS {
-        Some(name) => (None, rendered_detail.map(|detail| (name, detail))),
-        None => (rendered_detail, None),
-    };
+    let (detail, retrofit_detail, duplicate) = split_detail::<T>(problem.detail());
 
-    // A `#[serde(flatten)]` field can add a `tag` member, or a member that collides with a `detail_as` or fixed
-    // member. Only serialization shows these members. The code serializes the extension members once and uses the
+    // A `#[serde(flatten)]` field can add a `tag` member, or a member that collides with a `detail_as`,
+    // `detail_duplicate` or fixed member. Only serialization shows these members. The code serializes the extension members once and uses the
     // result for both checks.
     let probe_tag = tag_member.is_some() && T::__TAG_FIELD == TagField::Unknown;
-    let has_retrofit_members = retrofit_detail.is_some() || !T::__FIXED.is_empty();
+    let has_retrofit_members =
+        retrofit_detail.is_some() || duplicate.is_some() || !T::__FIXED.is_empty();
     if T::__OPEN_MEMBERS
         && (probe_tag || has_retrofit_members)
         && let Ok(Value::Object(members)) = serde_json::to_value(ExtensionMembers(problem))
@@ -413,6 +410,7 @@ pub fn serialize_problem<T: ProblemType, S: Serializer>(
         }
         let retrofit_names = retrofit_detail
             .iter()
+            .chain(&duplicate)
             .map(|(name, _)| *name)
             .chain(T::__FIXED.iter().map(|fixed| fixed.name));
         for name in retrofit_names {
@@ -430,11 +428,31 @@ pub fn serialize_problem<T: ProblemType, S: Serializer>(
         instance: None,
         retrofit: Retrofit {
             detail: retrofit_detail,
+            duplicate,
             fixed: T::__FIXED,
         },
         extensions: ExtensionMembers(problem),
     }
     .serialize(serializer)
+}
+
+/// A rendered detail, split into the places where the document of `T` writes it: the `detail` member, the
+/// `detail_as` member, and the `detail_duplicate` member. Each one is `None` if the document does not have it.
+#[allow(clippy::type_complexity)]
+fn split_detail<T: ProblemType>(
+    rendered: Option<String>,
+) -> (
+    Option<String>,
+    Option<(&'static str, String)>,
+    Option<(&'static str, String)>,
+) {
+    let duplicate = T::__DETAIL_DUPLICATE
+        .zip(rendered.clone())
+        .map(|(duplicate, detail)| (duplicate.name, detail));
+    match T::__DETAIL_AS {
+        Some(name) => (None, rendered.map(|detail| (name, detail)), duplicate),
+        None => (rendered, None, duplicate),
+    }
 }
 
 /// The error message if a document has a `tag` member from its tag URI, and also an extension member `tag`.
@@ -449,12 +467,12 @@ pub(crate) fn tag_collision(definition: Option<&str>) -> String {
     )
 }
 
-/// The error message if a `detail_as` or fixed member collides with a member that a `#[serde(flatten)]` field
+/// The error message if a `detail_as`, `detail_duplicate` or fixed member collides with a member that a `#[serde(flatten)]` field
 /// adds. The macro cannot see this collision at compile time.
 pub(crate) fn retrofit_collision(definition: &str, name: &str) -> String {
     format!(
-        "the problem type `{definition}` writes the member `{name}` from `detail_as` or `fixed`, and a \
-         flattened field also writes `{name}`; rename one of them"
+        "the problem type `{definition}` writes the member `{name}` from `detail_as`, `detail_duplicate` or \
+         `fixed`, and a flattened field also writes `{name}`; rename one of them"
     )
 }
 
@@ -476,12 +494,15 @@ struct Document<'a, E> {
     extensions: E,
 }
 
-/// The `detail_as` and fixed members of a problem type: a map with the `detail_as` entry first, then the fixed
-/// entries in declaration order.
+/// The `detail_as`, `detail_duplicate` and fixed members of a problem type: a map with the `detail_as` entry first,
+/// then the `detail_duplicate` entry, then the fixed entries in declaration order.
 struct Retrofit {
     /// The `detail_as` name and the rendered detail. It is `None` if the type has no `detail_as`, or if the rendered
     /// detail is `None`.
     detail: Option<(&'static str, String)>,
+    /// The `detail_duplicate` name and the rendered detail. It is `None` if the type has no `detail_duplicate`, or
+    /// if the rendered detail is `None`.
+    duplicate: Option<(&'static str, String)>,
     /// The fixed members, in declaration order.
     fixed: &'static [Fixed],
 }
@@ -489,9 +510,11 @@ struct Retrofit {
 impl Serialize for Retrofit {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeMap;
-        let len = self.fixed.len() + usize::from(self.detail.is_some());
+        let len = self.fixed.len()
+            + usize::from(self.detail.is_some())
+            + usize::from(self.duplicate.is_some());
         let mut map = serializer.serialize_map(Some(len))?;
-        if let Some((name, detail)) = &self.detail {
+        for (name, detail) in self.detail.iter().chain(&self.duplicate) {
             map.serialize_entry(name, detail)?;
         }
         for fixed in self.fixed {

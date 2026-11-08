@@ -179,10 +179,11 @@
 //! # Retrofit
 //!
 //! An API can already have an error format of its own, for example
-//! `{ "error": "...", "code": "WIDGET_CONFLICT", "success": false }`. With `detail_as` and `fixed(...)`, the API can
-//! send problem details documents that keep each member its clients read. `detail_as` writes the rendered detail to
-//! the extension member that you name, instead of `detail`. `fixed(...)` adds extension members with a constant
-//! value, such as a legacy `code` that identifies the problem type.
+//! `{ "error": "...", "code": "WIDGET_CONFLICT", "success": false }`. With `detail_as`, `detail_duplicate` and
+//! `fixed(...)`, the API can send problem details documents that keep each member its clients read. `detail_as` writes
+//! the rendered detail to the extension member that you name, instead of `detail`. `detail_duplicate` writes it to a
+//! second member and keeps `detail`. `fixed(...)` adds extension members with a constant value, such as a legacy `code`
+//! that identifies the problem type.
 //!
 //! ```rust
 //! use problem_details_fine::problem_type;
@@ -342,6 +343,7 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 /// | `detail = "..."` | No | A format string for the `detail` member. It can use the fields, for example `"widget {id} exists"`. |
 /// | `detail_with = path` | No | A `fn(&Self) -> Option<String>` for the `detail` member. Do not use it with `detail`. |
 /// | `detail_as = "<member>"` | No | Writes the detail as this extension member instead of `detail`. |
+/// | `detail_duplicate = "<member>"` | No | Also writes the detail as this extension member. A doc comment is optional. See [Retrofit](#retrofit). |
 /// | `fixed(...)` | No | Extension members with a constant value. See [Retrofit](#retrofit). |
 /// | `tag = "tag:..."` | No | A tag URI for the problem type, if `type` is not a tag URI. The document then has a `tag` member. |
 /// | `wrap = "<member>"` | No | Puts the extension members in this one member. |
@@ -417,7 +419,7 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 ///
 /// # Retrofit
 ///
-/// `detail_as` and `fixed(...)` add the members of an existing error format to a problem type. The document is then
+/// `detail_as`, `detail_duplicate` and `fixed(...)` add the members of an existing error format to a problem type. The document is then
 /// valid problem details, and it still has the members that a client reads. [Retrofit](crate#retrofit) in the crate
 /// documentation has an example.
 ///
@@ -446,6 +448,61 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 /// `detail_as` needs a detail source: the `detail` argument, `detail_with`, or `#[problem(detail = "...")]` on at
 /// least one variant. The macro rejects `detail_as` together with `omit(detail)`, because `detail_as` already leaves
 /// `detail` out of the schema.
+///
+/// ## `detail_duplicate`
+///
+/// `detail_duplicate` writes the rendered detail to a second member. The document keeps the `detail` member. Use it
+/// while clients move from a legacy member, such as `message`, to `detail`.
+///
+/// ```rust
+/// use problem_details_fine::problem_type;
+/// use serde_json::json;
+///
+/// #[problem_type(
+///     type = "https://example.com/problems/widget-conflict",
+///     status = CONFLICT,
+///     title = "A widget with that id already exists",
+///     detail = "widget `{id}` already exists",
+///     detail_duplicate(
+///         /// The legacy error message. It has the same value as `detail`.
+///         message
+///     ),
+/// )]
+/// #[derive(Debug)]
+/// struct WidgetConflict {
+///     id: String,
+/// }
+///
+/// assert_eq!(
+///     serde_json::to_value(WidgetConflict { id: "w-1".into() }).unwrap(),
+///     json!({
+///         "type": "https://example.com/problems/widget-conflict",
+///         "status": 409,
+///         "title": "A widget with that id already exists",
+///         "detail": "widget `w-1` already exists",
+///         "message": "widget `w-1` already exists",
+///         "id": "w-1",
+///     })
+/// );
+/// ```
+///
+/// The argument has two forms:
+///
+/// - `detail_duplicate = "<member>"` gives only the name.
+/// - `detail_duplicate(<member>)` can also have a doc comment before the name. The name is a Rust identifier or a
+///   string literal, as in `fixed(...)`.
+///
+/// The Openapi schema adds the member as a `string` property. The doc comment is the `description` of the property.
+/// Without a doc comment, the description is the same as the description of `detail`. The property is required under
+/// the same rules as the `detail_as` property.
+///
+/// If the rendered value is `None`, the document has no `detail_duplicate` member.
+///
+/// The [`ProblemDetails`] from [`ProblemDetails::from`] has the string in `detail()` and in `extensions()`, under the
+/// `detail_duplicate` name. [`ProblemDetails::with_detail`] on that value changes only the `detail` member.
+///
+/// `detail_duplicate` needs a detail source, as `detail_as` does. The macro rejects `detail_duplicate` together with
+/// `detail_as`, because `detail_as` removes the `detail` member that `detail_duplicate` repeats.
 ///
 /// ## `fixed(...)`
 ///
@@ -496,31 +553,31 @@ pub use problem::{ExtensionError, ProblemDetails, ProblemSet, ProblemType};
 /// `enum: [<value>]`, with the value as its single allowed value.
 ///
 /// Fixed members serialize at the top level of the document, in declaration order. They come after the `detail_as`
-/// member and before the fields. With `wrap`, they are next to the `wrap` member, not in it.
+/// and `detail_duplicate` members and before the fields. With `wrap`, they are next to the `wrap` member, not in it.
 /// [`ProblemDetails::from`] puts them in `extensions()`. That `serde_json::Map` sorts its keys, so the order there is
 /// alphabetical.
 ///
-/// Serde container attributes such as `rename_all` do not rename a fixed member or the `detail_as` member. The
+/// Serde container attributes such as `rename_all` do not rename a fixed, `detail_as` or `detail_duplicate` member. The
 /// document uses each name exactly as you write it. Nothing checks that fixed values, such as `code`, are unique
 /// across problem types.
 ///
 /// ## Collisions
 ///
-/// The name of a `detail_as` or fixed member follows the same rules as a field. See
+/// The name of a `detail_as`, `detail_duplicate` or fixed member follows the same rules as a field. See
 /// [Extension members](#extension-members) below. The name cannot be `type`, `status`, `title`, `detail` or
 /// `instance`. It also cannot be the same as one of these names:
 ///
 /// - A field, after serde renames.
 /// - The `wrap` member.
 /// - The `#[serde(tag = "...")]` or `#[serde(content = "...")]` member.
-/// - Another fixed member, or the `detail_as` member.
+/// - Another fixed member, or the `detail_as` or `detail_duplicate` member.
 /// - `tag`, if the `tag` argument adds the `tag` member. This rule is the same as for a field.
 ///
 /// The compiler gives an error for each collision. It also gives an error for a fixed entry without a doc comment,
 /// with an unsupported type, or with a value that does not match its declared type.
 ///
 /// A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. If that member collides
-/// with a `detail_as` or fixed member, serialization fails at run time. Serialization of the [`ProblemDetails`] from
+/// with a `detail_as`, `detail_duplicate` or fixed member, serialization fails at run time. Serialization of the [`ProblemDetails`] from
 /// [`ProblemDetails::from`] also fails, and the generation of the Openapi schema panics.
 ///
 /// # Extension members

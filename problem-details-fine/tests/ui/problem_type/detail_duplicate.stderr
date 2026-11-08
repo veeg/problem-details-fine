@@ -1,0 +1,65 @@
+error: `detail_duplicate` requires a detail source: `detail`, `detail_with` or `#[problem(detail = ..)]` on a variant
+ --> tests/ui/problem_type/detail_duplicate.rs:3:96
+  |
+3 | #[problem_type(type = "tag:x.test,2025:A", status = NOT_FOUND, title = "X", detail_duplicate = "message")]
+  |                                                                                                ^^^^^^^^^
+
+error: the `detail_duplicate` member `detail` collides with a reserved problem details member
+ --> tests/ui/problem_type/detail_duplicate.rs:6:108
+  |
+6 | #[problem_type(type = "tag:x.test,2025:B", status = NOT_FOUND, title = "X", detail = "x", detail_duplicate(detail))]
+  |                                                                                                            ^^^^^^
+
+error: the `detail_duplicate` member `id` collides with an extension member
+ --> tests/ui/problem_type/detail_duplicate.rs:9:108
+  |
+9 | #[problem_type(type = "tag:x.test,2025:C", status = NOT_FOUND, title = "X", detail = "x", detail_duplicate(id))]
+  |                                                                                                            ^^
+
+error: `detail_as` and `detail_duplicate` are mutually exclusive
+  --> tests/ui/problem_type/detail_duplicate.rs:14:131
+   |
+14 | ... "X", detail = "x", detail_as = "error", detail_duplicate = "message")]
+   |                                                                ^^^^^^^^^
+
+error: the fixed member `code` collides with the `detail_duplicate` member
+  --> tests/ui/problem_type/detail_duplicate.rs:23:28
+   |
+23 |     fixed(/** The code. */ code: &str = "E"),
+   |                            ^^^^
+
+error: the `detail_duplicate` member `tag` collides with the `tag` member that the `tag` argument adds
+  --> tests/ui/problem_type/detail_duplicate.rs:33:24
+   |
+33 |     detail_duplicate = "tag",
+   |                        ^^^^^
+
+error: the `tag` argument is here
+  --> tests/ui/problem_type/detail_duplicate.rs:29:11
+   |
+29 |     tag = "tag:x.test,2025:F",
+   |           ^^^^^^^^^^^^^^^^^^^
+
+error: `detail_duplicate` cannot be empty
+  --> tests/ui/problem_type/detail_duplicate.rs:37:110
+   |
+37 | #[problem_type(type = "tag:x.test,2025:G", status = NOT_FOUND, title = "X", detail = "x", detail_duplicate = "")]
+   |                                                                                                              ^^
+
+error: `detail_duplicate` is already set
+  --> tests/ui/problem_type/detail_duplicate.rs:40:115
+   |
+40 | ...UND, title = "X", detail = "x", detail_duplicate = "a", detail_duplicate = "b")]
+   |                                                            ^^^^^^^^^^^^^^^^
+
+error: `detail_duplicate(..)` takes one member name
+  --> tests/ui/problem_type/detail_duplicate.rs:43:111
+   |
+43 | #[problem_type(type = "tag:x.test,2025:I", status = NOT_FOUND, title = "X", detail = "x", detail_duplicate(a, b))]
+   |                                                                                                               ^
+
+error: the `detail_duplicate` member accepts only doc comments
+  --> tests/ui/problem_type/detail_duplicate.rs:46:108
+   |
+46 | #[problem_type(type = "tag:x.test,2025:J", status = NOT_FOUND, title = "X", detail = "x", detail_duplicate(#[serde] a))]
+   |                                                                                                            ^^^^^^^^

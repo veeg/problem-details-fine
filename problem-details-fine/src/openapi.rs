@@ -133,12 +133,13 @@ pub fn problem_schema<T: ProblemType>(
     }
 
     // A `#[serde(flatten)]` field can add a member that the macro cannot see at compile time. That member can
-    // collide with a `detail_as` or fixed member.
+    // collide with a `detail_as`, `detail_duplicate` or fixed member.
     if T::__OPEN_MEMBERS
         && let Some(payload) = payload.as_ref()
     {
         let retrofit_names = T::__DETAIL_AS
             .into_iter()
+            .chain(T::__DETAIL_DUPLICATE.map(|duplicate| duplicate.name))
             .chain(T::__FIXED.iter().map(|fixed| fixed.name));
         for name in retrofit_names {
             assert!(
@@ -222,7 +223,7 @@ fn base_schema<T: ProblemType>(resolved: &TypeIdentity<'_>) -> ObjectBuilder {
     let builder = match T::__DETAIL_AS {
         Some(name) => {
             let builder = builder.property(name, string().description(Some(detail_description)));
-            if T::__DETAIL_AS_REQUIRED {
+            if T::__DETAIL_ALWAYS {
                 builder.required(name)
             } else {
                 builder
@@ -230,6 +231,19 @@ fn base_schema<T: ProblemType>(resolved: &TypeIdentity<'_>) -> ObjectBuilder {
         }
         None if omit.detail => builder,
         None => builder.property("detail", string().description(Some(detail_description))),
+    };
+
+    let builder = match T::__DETAIL_DUPLICATE {
+        Some(duplicate) => {
+            let description = duplicate.description.unwrap_or(detail_description);
+            let builder = builder.property(duplicate.name, string().description(Some(description)));
+            if T::__DETAIL_ALWAYS {
+                builder.required(duplicate.name)
+            } else {
+                builder
+            }
+        }
+        None => builder,
     };
 
     let builder = if omit.instance {

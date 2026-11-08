@@ -3,9 +3,9 @@
 use crate::types::{
     AdjacentProblem, ComputedProblem, ConfiguredProblem, ExplicitTagProblem, ExternalProblem,
     FlatProblem, Location, ManualProblem, NewtypeProblem, RawProblem, ReferencingProblem,
-    RetrofitAdjacentProblem, RetrofitEnumProblem, RetrofitPartialProblem, RetrofitProblem,
-    RetrofitUnitProblem, RetrofitWrappedProblem, TaggedProblem, TransparentProblem, UnitProblem,
-    WrappedProblem,
+    RetrofitAdjacentProblem, RetrofitDuplicatePartialProblem, RetrofitDuplicateProblem,
+    RetrofitEnumProblem, RetrofitPartialProblem, RetrofitProblem, RetrofitUnitProblem,
+    RetrofitWrappedProblem, TaggedProblem, TransparentProblem, UnitProblem, WrappedProblem,
 };
 use problem_details_fine::{ProblemDetails, ProblemType};
 use serde_json::{Value, json};
@@ -101,6 +101,15 @@ fn retrofit_shapes_conform() {
     assert_conforms(RetrofitUnitProblem);
     assert_conforms(RetrofitAdjacentProblem::Titled { title: "t".into() });
     assert_conforms(RetrofitAdjacentProblem::Count(1));
+}
+
+/// Each of these types with `detail_duplicate` conforms to its own schema: a struct, and an enum where a variant
+/// has no format string.
+#[test]
+fn detail_duplicate_conforms() {
+    assert_conforms(RetrofitDuplicateProblem { id: "w-1".into() });
+    assert_conforms(RetrofitDuplicatePartialProblem::Missing { id: "a".into() });
+    assert_conforms(RetrofitDuplicatePartialProblem::Other { id: "b".into() });
 }
 
 #[test]

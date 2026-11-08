@@ -7,6 +7,7 @@ use syn::{
 
 use crate::{
     Errors, attrs, detail,
+    detail_duplicate::{self, DetailDuplicate},
     fixed::{self, FixedEntry},
     status, uri,
 };
@@ -23,6 +24,8 @@ struct Args {
     detail_with: Option<Path>,
     /// The extension member that holds the rendered detail instead of `detail`.
     detail_as: Option<LitStr>,
+    /// The extension member that repeats the rendered detail, next to `detail`.
+    detail_duplicate: Option<DetailDuplicate>,
     tag_uri: Option<LitStr>,
     wrap: Option<LitStr>,
     schema_title: Option<LitStr>,
@@ -56,6 +59,11 @@ impl Args {
                     return Err(meta.error("`detail_as` is already set"));
                 }
                 args.detail_as = Some(meta.value()?.parse()?);
+            } else if path.is_ident("detail_duplicate") {
+                if args.detail_duplicate.is_some() {
+                    return Err(meta.error("`detail_duplicate` is already set"));
+                }
+                args.detail_duplicate = Some(detail_duplicate::parse(&meta)?);
             } else if path.is_ident("tag") {
                 args.tag_uri = Some(meta.value()?.parse()?);
             } else if path.is_ident("wrap") {
@@ -90,7 +98,8 @@ impl Args {
             } else {
                 return Err(meta.error(
                     "unknown `problem_type` argument; expected one of `type`, `status`, `title`, `detail`, \
-                     `detail_with`, `detail_as`, `fixed`, `tag`, `wrap`, `schema_title`, `payload_schema`, `omit`",
+                     `detail_with`, `detail_as`, `detail_duplicate`, `fixed`, `tag`, `wrap`, `schema_title`, \
+                     `payload_schema`, `omit`",
                 ));
             }
             Ok(())
@@ -197,6 +206,12 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
     };
 
     // The `detail` member.
+    if let (Some(_), Some(duplicate)) = (&args.detail_as, &args.detail_duplicate) {
+        errors.push(syn::Error::new(
+            duplicate.name_span,
+            "`detail_as` and `detail_duplicate` are mutually exclusive",
+        ));
+    }
     if let (Some(detail), Some(_)) = (&args.detail, &args.detail_with) {
         errors.push(syn::Error::new_spanned(
             detail,
@@ -233,9 +248,16 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
         errors.push(error);
     }
     let fixed_entries = args.fixed.as_deref().unwrap_or_default();
+    // With both `detail_as` and `detail_duplicate`, the error above is enough. A second error for the same names
+    // would be noise.
+    let checked_duplicate = args
+        .detail_duplicate
+        .as_ref()
+        .filter(|_| args.detail_as.is_none());
     if let Err(error) = check_retrofit(
         &members,
         args.detail_as.as_ref(),
+        checked_duplicate,
         fixed_entries,
         args.tag_uri.as_ref(),
     ) {
@@ -248,7 +270,12 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
             Err(error) => errors.push(error),
         }
     }
-    let tag_field = tag_field(&members, args.detail_as.as_ref(), fixed_entries);
+    let tag_field = tag_field(
+        &members,
+        args.detail_as.as_ref(),
+        args.detail_duplicate.as_ref(),
+        fixed_entries,
+    );
 
     errors.finish()?;
 
@@ -347,7 +374,7 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
         Some(name) => quote!(::core::option::Option::Some(#name)),
         None => quote!(::core::option::Option::None),
     };
-    let detail_as_required = args.detail_as.is_some() && always_detail;
+    let detail_duplicate = detail_duplicate::expand(args.detail_duplicate.as_ref());
 
     Ok(quote! {
         #[derive(::problem_details_fine::__private::__ProblemHelpers)]
@@ -378,7 +405,9 @@ pub(crate) fn expand(args: TokenStream, item: TokenStream) -> syn::Result<TokenS
                     instance: #omit_instance,
                 };
                 const __DETAIL_AS: ::core::option::Option<&'static str> = #detail_as;
-                const __DETAIL_AS_REQUIRED: bool = #detail_as_required;
+                const __DETAIL_DUPLICATE: ::core::option::Option<::problem_details_fine::__private::DetailDuplicate> =
+                    #detail_duplicate;
+                const __DETAIL_ALWAYS: bool = #always_detail;
                 #[allow(clippy::unnecessary_cast)]
                 const __FIXED: &'static [::problem_details_fine::__private::Fixed] = &[#(#fixed),*];
                 const __OPEN_MEMBERS: bool = #open_members;
@@ -475,10 +504,19 @@ fn detail_body(args: &Args, input: &mut DeriveInput) -> syn::Result<(TokenStream
         Data::Union(_) => {}
     }
 
+    let has_source = args.detail.is_some()
+        || args.detail_with.is_some()
+        || variant_details.iter().any(Option::is_some);
+    if let Some(duplicate) = &args.detail_duplicate
+        && !has_source
+    {
+        errors.push(syn::Error::new(
+            duplicate.name_span,
+            "`detail_duplicate` requires a detail source: `detail`, `detail_with` or `#[problem(detail = ..)]` on \
+             a variant",
+        ));
+    }
     if let Some(detail_as) = &args.detail_as {
-        let has_source = args.detail.is_some()
-            || args.detail_with.is_some()
-            || variant_details.iter().any(Option::is_some);
         if !has_source {
             errors.push(syn::Error::new_spanned(
                 detail_as,
@@ -826,67 +864,100 @@ fn check_members(
     errors.finish()
 }
 
-/// Rejects these names of a `detail_as` or fixed member:
+/// Rejects these names of a `detail_as`, `detail_duplicate` or fixed member:
 ///
-/// - An empty `detail_as` name.
+/// - An empty `detail_as` or `detail_duplicate` name.
 /// - A reserved name.
-/// - A fixed member name that is defined more than once, or that is the `detail_as` name.
+/// - A name that another of these members also uses.
 /// - The name of an extension member at the top level of the document.
 /// - `tag`, if the `tag` argument adds the `tag` member of the document.
 ///
-/// The `detail_as` and fixed members are at the top level even with `wrap`.
+/// These members are at the top level even with `wrap`.
 fn check_retrofit(
     members: &Members,
     detail_as: Option<&LitStr>,
+    duplicate: Option<&DetailDuplicate>,
     fixed: &[FixedEntry],
     tag_argument: Option<&LitStr>,
 ) -> syn::Result<()> {
-    let mut errors = Errors::default();
-    // The members that `detail_as` and `fixed(...)` add. Each one has the label that an error message uses for it.
-    let mut retrofit: Vec<(String, String, Span)> = Vec::new();
-    if let Some(detail_as) = detail_as {
-        let name = detail_as.value();
-        if name.is_empty() {
-            errors.push(syn::Error::new_spanned(
-                detail_as,
-                "`detail_as` cannot be empty",
-            ));
-        } else if RESERVED.contains(&name.as_str()) {
-            errors.push(syn::Error::new_spanned(
-                detail_as,
-                format!("`detail_as = \"{name}\"` collides with a reserved problem details member"),
-            ));
-        } else {
-            retrofit.push((
-                format!("the `detail_as` member `{name}`"),
-                name,
-                detail_as.span(),
-            ));
-        }
-    }
-    for entry in fixed {
-        let name = &entry.name;
-        let label = format!("the fixed member `{name}`");
-        if RESERVED.contains(&name.as_str()) {
-            errors.push(syn::Error::new(
-                entry.name_span,
-                format!("{label} collides with a reserved problem details member"),
-            ));
-            continue;
-        }
-        if retrofit.iter().any(|(_, other, _)| other == name) {
-            let message = if detail_as.is_some_and(|detail_as| detail_as.value() == *name) {
-                format!("{label} collides with the `detail_as` member")
-            } else {
-                format!("{label} is defined more than once")
-            };
-            errors.push(syn::Error::new(entry.name_span, message));
-            continue;
-        }
-        retrofit.push((label, name.clone(), entry.name_span));
+    /// One member that `detail_as`, `detail_duplicate` or `fixed(...)` adds.
+    struct Retrofit {
+        /// The kind of member, for error messages, for example "the fixed member".
+        kind: &'static str,
+        /// The macro argument, for `detail_as` and `detail_duplicate`. It is `None` for a fixed member.
+        argument: Option<&'static str>,
+        name: String,
+        span: Span,
     }
 
-    for (label, name, span) in &retrofit {
+    let mut errors = Errors::default();
+    let mut candidates = Vec::new();
+    if let Some(detail_as) = detail_as {
+        candidates.push(Retrofit {
+            kind: "the `detail_as` member",
+            argument: Some("detail_as"),
+            name: detail_as.value(),
+            span: detail_as.span(),
+        });
+    }
+    if let Some(duplicate) = duplicate {
+        candidates.push(Retrofit {
+            kind: "the `detail_duplicate` member",
+            argument: Some("detail_duplicate"),
+            name: duplicate.name.clone(),
+            span: duplicate.name_span,
+        });
+    }
+    candidates.extend(fixed.iter().map(|entry| Retrofit {
+        kind: "the fixed member",
+        argument: None,
+        name: entry.name.clone(),
+        span: entry.name_span,
+    }));
+
+    let mut retrofit: Vec<Retrofit> = Vec::new();
+    for candidate in candidates {
+        let Retrofit {
+            kind,
+            argument,
+            name,
+            span,
+        } = &candidate;
+        // The fixed parser already rejects an empty name.
+        if let (Some(argument), true) = (argument, name.is_empty()) {
+            errors.push(syn::Error::new(
+                *span,
+                format!("`{argument}` cannot be empty"),
+            ));
+            continue;
+        }
+        if RESERVED.contains(&name.as_str()) {
+            // `detail_as` only has the `= "<member>"` form, so its message quotes that form.
+            let message = if *argument == Some("detail_as") {
+                format!("`detail_as = \"{name}\"` collides with a reserved problem details member")
+            } else {
+                format!("{kind} `{name}` collides with a reserved problem details member")
+            };
+            errors.push(syn::Error::new(*span, message));
+            continue;
+        }
+        if let Some(other) = retrofit.iter().find(|other| other.name == *name) {
+            let message = if other.kind == *kind {
+                format!("{kind} `{name}` is defined more than once")
+            } else {
+                format!("{kind} `{name}` collides with {}", other.kind)
+            };
+            errors.push(syn::Error::new(*span, message));
+            continue;
+        }
+        retrofit.push(candidate);
+    }
+
+    for Retrofit {
+        kind, name, span, ..
+    } in &retrofit
+    {
+        let label = format!("{kind} `{name}`");
         if members.named.iter().any(|(member, _)| member == name) {
             errors.push(syn::Error::new(
                 *span,
@@ -910,11 +981,17 @@ fn check_retrofit(
     errors.finish()
 }
 
-/// The `__TAG_FIELD` value: whether the extension members, including the `detail_as` and fixed members, include a
-/// `tag` member.
-fn tag_field(members: &Members, detail_as: Option<&LitStr>, fixed: &[FixedEntry]) -> TokenStream {
+/// The `__TAG_FIELD` value: whether the extension members, including the `detail_as`, `detail_duplicate` and fixed
+/// members, include a `tag` member.
+fn tag_field(
+    members: &Members,
+    detail_as: Option<&LitStr>,
+    duplicate: Option<&DetailDuplicate>,
+    fixed: &[FixedEntry],
+) -> TokenStream {
     let named_tag = members.named.iter().any(|(name, _)| name == "tag")
         || detail_as.is_some_and(|detail_as| detail_as.value() == "tag")
+        || duplicate.is_some_and(|duplicate| duplicate.name == "tag")
         || fixed.iter().any(|entry| entry.name == "tag");
     if named_tag {
         quote!(::problem_details_fine::__private::TagField::Yes)

@@ -7,6 +7,7 @@ use proc_macro::TokenStream;
 
 mod attrs;
 mod detail;
+mod detail_duplicate;
 mod fixed;
 mod problem_set;
 mod problem_type;

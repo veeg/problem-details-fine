@@ -66,9 +66,10 @@ An API can already have an error format of its own, for example:
 { "error": "widget `w-1` already exists", "code": "WIDGET_CONFLICT", "success": false }
 ```
 
-With `detail_as` and `fixed(...)`, the API can send problem details documents that keep each member its clients read.
-`detail_as` writes the rendered detail to the extension member that you name, instead of `detail`. `fixed(...)` adds
-extension members with a constant value, such as a legacy `code`:
+With `detail_as`, `detail_duplicate` and `fixed(...)`, the API can send problem details documents that keep each member
+its clients read. `detail_as` writes the rendered detail to the extension member that you name, instead of `detail`.
+`detail_duplicate` writes it to a second member and keeps `detail`. `fixed(...)` adds extension members with a constant
+value, such as a legacy `code`:
 
 ```rust
 #[problem_type(
