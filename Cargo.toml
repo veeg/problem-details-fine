@@ -12,8 +12,8 @@ keywords = ["rfc9457", "problem-details", "api", "http", "error"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/veeg/problem-details-fine"
 rust-version = "1.88"
-version = "0.1.1"
+version = "0.1.2"
 
 [workspace.dependencies]
 # The macros and the main crate are released as an exact pair.
-problem-details-fine-macros = { path = "problem-details-fine-macros", version = "=0.1.1" }
+problem-details-fine-macros = { path = "problem-details-fine-macros", version = "=0.1.2" }
