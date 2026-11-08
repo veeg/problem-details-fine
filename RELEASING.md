@@ -7,8 +7,8 @@ A release publishes `problem-details-fine` and `problem-details-fine-macros` to 
 ## What a release contains
 
 - Both crates get the same version. They are in one version group, `problem-details-fine`.
-- The changelog of `problem-details-fine` also lists the changes to `problem-details-fine-macros`. The macros crate
-  reaches users through the main crate.
+- The repository has one changelog, `CHANGELOG.md` at the root. It lists the changes to both crates under the
+  version of `problem-details-fine`. The macros crate reaches users through the main crate.
 - The commit gets the tag `vX.Y.Z`, and GitHub gets a release `vX.Y.Z`. The body of the GitHub release is the
   changelog entry.
 - `problem-details-fine-macros` gets no tag and no GitHub release of its own.
